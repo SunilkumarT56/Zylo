@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Triangle, Github, Lock } from "lucide-react";
+import { Github, Lock, Triangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Logo } from "@/components/Logo";
 
 interface AuthPageProps {
   onLogin: () => void;
@@ -106,7 +107,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
             {view === "VERIFY" ? (
               <Lock className="h-6 w-6 text-white" />
             ) : (
-              <Triangle className="h-6 w-6 fill-white text-white" />
+              <Logo className="h-6 w-6 text-white" />
             )}
           </div>
           <h1 className="text-2xl font-bold tracking-tight">

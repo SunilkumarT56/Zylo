@@ -1,5 +1,6 @@
-import { Triangle, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "./ui/Button";
+import { Logo } from "@/components/Logo";
 
 interface HeaderProps {
   onLogout: () => void;
@@ -10,7 +11,7 @@ export function Header({ onLogout }: HeaderProps) {
     <header className="fixed top-0 z-50 w-full border-b border-white/10 bg-black/50 backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <Triangle className="h-8 w-8 fill-white text-white" />
+          <Logo className="h-8 w-8 text-white" />
           <span className="text-xl font-bold text-white tracking-tight">buildep</span>
         </div>
         <Button 
