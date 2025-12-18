@@ -17,6 +17,7 @@ app.get("/api/status", async (req, res) => {
   const { id } = req.query;
   if (typeof id !== "string") {
     return res.status(400).json({ error: "Invalid id parameter" });
+  }
   const response = await subscriber.hGet("status", id);
   res.json({ status: response });
 });
