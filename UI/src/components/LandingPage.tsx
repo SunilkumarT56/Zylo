@@ -11,11 +11,11 @@ export function LandingPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <Logo className="h-8 w-8 text-white" />
-            <span className="text-xl font-bold text-white tracking-tight">buildep</span>
+            <span className="text-xl font-bold text-white tracking-tight">BulDep</span>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login">
-              <Button variant="ghost" className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
+              <Button variant="ghost" className="text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors border border-white/10">
                 Log In
               </Button>
             </Link>
@@ -38,9 +38,9 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-5xl sm:text-7xl font-extrabold tracking-tighter bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-transparent"
+            className="text-5xl sm:text-7xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-[radial-gradient(circle_at_20%_30%,rgba(255,0,153,0.4)_0%,transparent_30%),radial-gradient(circle_at_80%_40%,rgba(0,204,255,0.4)_0%,transparent_30%),radial-gradient(circle_at_30%_70%,rgba(51,204,51,0.4)_0%,transparent_30%),radial-gradient(circle_at_70%_70%,rgba(255,204,0,0.4)_0%,transparent_30%),linear-gradient(to_right,white,white)] pb-2"
           >
-            Build and deploy on the <br/> AI Cloud.
+            Infrastructure that works quietly while you ship faster.
           </motion.h1>
           
           <motion.p 
@@ -49,7 +49,7 @@ export function LandingPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed"
           >
-            Buildep provides the developer tools and cloud infrastructure to build, scale, and secure a faster, more personalized web.
+            Ship applications faster with automated builds and global deployments.
           </motion.p>
           
           <motion.div 
@@ -60,29 +60,11 @@ export function LandingPage() {
           >
             <Link to="/signup">
                 <Button size="lg" className="h-12 px-8 bg-white text-black hover:bg-zinc-200 font-semibold text-base rounded-full">
-                Start Deploying
+                Start Building
                 </Button>
             </Link>
-            <Button size="lg" variant="outline" className="h-12 px-8 border-white/10 bg-transparent text-white hover:bg-white/5 font-semibold text-base rounded-full">
-              Get a Demo
-            </Button>
           </motion.div>
         </div>
-
-        {/* Triangle / Prism Effect Replica */}
-        <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.4 }} 
-            className="mt-20 relative w-full max-w-lg aspect-auto flex justify-center"
-        >
-             {/* Abstract Representation of the prism */}
-            <div className="relative w-64 h-64 bg-gradient-to-t from-zinc-900 to-black clip-path-triangle opacity-80 blur-2xl absolute top-10"></div>
-            <div className="w-0 h-0 border-l-[100px] border-l-transparent border-r-[100px] border-r-transparent border-b-[180px] border-b-white/10 blur-md relative z-10"></div>
-             {/* Colorful glows */}
-             <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-blue-500/30 rounded-full blur-[80px]"></div>
-             <div className="absolute top-1/2 right-1/4 w-32 h-32 bg-red-500/30 rounded-full blur-[80px]"></div>
-        </motion.div>
       </main>
     </div>
   );

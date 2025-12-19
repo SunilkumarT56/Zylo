@@ -5,6 +5,9 @@ import { Hero } from "@/components/Hero";
 import { Dashboard } from "@/components/Dashboard";
 import { AuthPage } from "@/components/AuthPage";
 import { VerifyPage } from "@/components/VerifyPage";
+import { LandingPage } from "@/components/LandingPage";
+import { SignupPage } from "@/components/SignupPage";
+import { SignupStepTwo } from "@/components/SignupStepTwo";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -53,20 +56,49 @@ function App() {
     setIsAuthenticated(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    try {
+      await fetch("https://untolerative-len-rumblingly.ngrok-free.dev/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout request failed", error);
+    } finally {
+      localStorage.removeItem("isAuthenticated");
+      setIsAuthenticated(false);
+    }
   };
 
   return (
     <Routes>
       <Route 
-        path="/auth" 
+        path="/login" 
         element={
           !isAuthenticated ? (
             <AuthPage onLogin={handleLogin} />
           ) : (
             <Navigate to="/dashboard" replace />
+          )
+        } 
+      />
+      <Route 
+        path="/signup" 
+        element={
+          !isAuthenticated ? (
+            <SignupPage />
+          ) : (
+             <Navigate to="/dashboard" replace />
+          )
+        } 
+      />
+      <Route 
+        path="/signup/connect" 
+        element={
+          !isAuthenticated ? (
+            <SignupStepTwo />
+          ) : (
+             <Navigate to="/dashboard" replace />
           )
         } 
       />
@@ -85,7 +117,7 @@ function App() {
               </main>
             </div>
           ) : (
-            <Navigate to="/auth" replace />
+            <Navigate to="/login" replace />
           )
         } 
       />
@@ -95,7 +127,7 @@ function App() {
           isAuthenticated ? (
             <Navigate to="/dashboard" replace />
           ) : (
-            <Navigate to="/auth" replace />
+            <LandingPage />
           )
         } 
       />
@@ -110,7 +142,7 @@ function App() {
               </main>
             </div>
           ) : (
-            <Navigate to="/auth" replace />
+            <Navigate to="/login" replace />
           )
         } 
       />
