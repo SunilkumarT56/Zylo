@@ -1,24 +1,19 @@
 import { useState } from "react";
-import { Github, Lock, Triangle } from "lucide-react";
+import { Github, Triangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Logo } from "@/components/Logo";
+import { Link } from "react-router-dom";
 
 interface AuthPageProps {
   onLogin: () => void;
 }
 
-type AuthView = "LOGIN" | "SIGNUP" | "VERIFY";
-
 export function AuthPage({ onLogin }: AuthPageProps) {
-  const [view, setView] = useState<AuthView>("LOGIN");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,55 +21,19 @@ export function AuthPage({ onLogin }: AuthPageProps) {
     setIsLoading(true);
 
     try {
-      if (view === "SIGNUP") {
-        const response = await fetch("http://localhost:3000/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password }),
-        });
+      const response = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (response.ok && data.success) {
-          setView("VERIFY");
-        } else {
-          setError(data.message || "Signup failed");
-        }
-      } else if (view === "VERIFY") {
-        const response = await fetch("http://localhost:3000/verify-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: otp }), // Backend expects 'token'
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          // Success!
-          // Store auth state
-          localStorage.setItem("isAuthenticated", "true");
-          // Redirect/Update state
-          onLogin();
-        } else {
-          setError(data.message || "Verification failed");
-        }
-      } else if (view === "LOGIN") {
-        const response = await fetch("http://localhost:3000/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-           // Success!
-           // Store auth state
-           localStorage.setItem("isAuthenticated", "true");
-           onLogin();
-        } else {
-           setError(data.message || "Login failed");
-        }
+      if (response.ok && data.success) {
+         localStorage.setItem("isAuthenticated", "true");
+         onLogin();
+      } else {
+         setError(data.message || "Login failed");
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -83,107 +42,52 @@ export function AuthPage({ onLogin }: AuthPageProps) {
     }
   };
 
-  const getTitle = () => {
-    switch (view) {
-      case "LOGIN": return "Welcome back";
-      case "SIGNUP": return "Create an account";
-      case "VERIFY": return "Check your email";
-    }
-  };
-
-  const getDescription = () => {
-    switch (view) {
-      case "LOGIN": return "Enter your credentials to access your account";
-      case "SIGNUP": return "Enter your details below to create your account";
-      case "VERIFY": return "Enter the verification code sent to your email";
-    }
-  };
-
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4 font-sans">
       <div className="w-full max-w-sm space-y-8">
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10">
-            {view === "VERIFY" ? (
-              <Lock className="h-6 w-6 text-white" />
-            ) : (
-              <Logo className="h-6 w-6 text-white" />
-            )}
+            <Logo className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {getTitle()}
+            Log in to buildep
           </h1>
           <p className="text-sm text-zinc-400">
-            {getDescription()}
+            Enter your email and password to continue
           </p>
         </div>
 
         <div className="grid gap-6">
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4">
-              {view === "VERIFY" ? (
-                <div className="grid gap-2">
-                   <Input
-                    id="otp"
-                    placeholder="Enter verification code/token"
-                    type="text"
-                    autoComplete="one-time-code"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    disabled={isLoading}
-                    className="bg-black border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-white/20 text-center"
-                    required
-                  />
-                </div>
-              ) : (
-                <>
-                  {view === "SIGNUP" && (
-                    <div className="grid gap-2">
-                       <Input
-                        id="name"
-                        placeholder="Name"
-                        type="text"
-                        autoCapitalize="words"
-                        autoComplete="name"
-                        autoCorrect="off"
-                        disabled={isLoading}
-                        className="bg-black border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-white/20"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                      />
-                    </div>
-                  )}
-                  <div className="grid gap-2">
-                    <Input
-                      id="email"
-                      placeholder="name@example.com"
-                      type="email"
-                      autoCapitalize="none"
-                      autoComplete="email"
-                      autoCorrect="off"
-                      disabled={isLoading}
-                      className="bg-black border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-white/20"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Input
-                      id="password"
-                      placeholder="Password"
-                      type="password"
-                      autoComplete={view === "LOGIN" ? "current-password" : "new-password"}
-                      disabled={isLoading}
-                      className="bg-black border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-white/20"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                </>
-              )}
+              <div className="grid gap-2">
+                <Input
+                  id="email"
+                  placeholder="name@example.com"
+                  type="email"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoCorrect="off"
+                  disabled={isLoading}
+                  className="bg-black border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-white/20 h-10"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Input
+                  id="password"
+                  placeholder="Password"
+                  type="password"
+                  autoComplete="current-password"
+                  disabled={isLoading}
+                  className="bg-black border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-white/20 h-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
               
               {error && (
                 <div className="flex items-center gap-2 rounded-md bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
@@ -194,92 +98,68 @@ export function AuthPage({ onLogin }: AuthPageProps) {
 
               <Button 
                 disabled={isLoading} 
-                className="bg-white text-black hover:bg-zinc-200"
+                className="bg-white text-black hover:bg-zinc-200 h-10 font-medium"
               >
                 {isLoading ? (
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
                 ) : null}
-                {view === "LOGIN" && "Sign In"}
-                {view === "SIGNUP" && "Sign Up"}
-                {view === "VERIFY" && "Verify Email"} 
+                Sign In
               </Button>
             </div>
           </form>
 
-          {view !== "VERIFY" && (
-            <>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-black px-2 text-zinc-400">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-black px-2 text-zinc-400">
+                Or continue with
+              </span>
+            </div>
+          </div>
 
-              <div className="relative">
-                <Button variant="outline" type="button" disabled={isLoading} className="w-full border-white/10 bg-black text-white hover:bg-white/5 hover:text-white">
-                  <Github className="mr-2 h-4 w-4" />
-                  GitHub
-                </Button>
-                <div className="absolute left-[110%] top-1/2 -translate-y-1/2 flex items-center gap-2 w-max hidden sm:flex">
-                  <svg
-                    width="60"
-                    height="35"
-                    viewBox="0 0 60 35"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="text-zinc-600 -translate-y-2"
-                  >
-                    <path
-                      d="M58 1C58 1 15 1 8 13C1 25 1 33 1 33M1 33L6 26M1 33L-4 26"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <span className="text-xs text-zinc-500 max-w-[120px] leading-tight translate-y-2">
-                    If you want webhook flow, login via GitHub
-                  </span>
-                </div>
-              </div>
-            </>
-          )}
+          <div className="grid gap-2">
+             {/* Google Login Placeholder - Functionality pending backend */}
+             <Button variant="outline" type="button" disabled={isLoading} className="w-full border-white/10 bg-black text-white hover:bg-white/5 hover:text-white h-10">
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <path
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    fill="#EA4335"
+                  />
+                </svg>
+                Google
+            </Button>
+            <Button 
+                variant="outline" 
+                type="button" 
+                disabled={isLoading} 
+                className="w-full border-white/10 bg-black text-white hover:bg-white/5 hover:text-white h-10"
+                onClick={() => window.location.href = "https://untolerative-len-rumblingly.ngrok-free.dev/auth/github/init"}
+            >
+                <Github className="mr-2 h-4 w-4" />
+                GitHub
+            </Button>
+          </div>
 
           <div className="text-center text-sm text-zinc-400">
-            {view === "VERIFY" ? (
-              <button
-                onClick={() => setView("SIGNUP")}
-                className="underline hover:text-white underline-offset-4"
-              >
-                Back to Sign Up
-              </button>
-            ) : (
-              <button
-                onClick={() => setView(view === "LOGIN" ? "SIGNUP" : "LOGIN")}
-                className="underline hover:text-white underline-offset-4"
-              >
-                {view === "LOGIN"
-                  ? "Don't have an account? Sign Up"
-                  : "Already have an account? Sign In"}
-              </button>
-            )}
+             <Link to="/signup" className="underline hover:text-white underline-offset-4">
+                Don't have an account? Sign Up
+             </Link>
           </div>
         </div>
-
-        <p className="px-8 text-center text-sm text-zinc-500">
-          By clicking continue, you agree to our{" "}
-          <a href="#" className="underline hover:text-white underline-offset-4">
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a href="#" className="underline hover:text-white underline-offset-4">
-            Privacy Policy
-          </a>
-          .
-        </p>
       </div>
     </div>
   );

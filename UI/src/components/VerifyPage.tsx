@@ -37,7 +37,7 @@ export function VerifyPage() {
 
           // Redirect to home after a delay
           setTimeout(() => {
-            navigate("/");
+            navigate("/dashboard");
           }, 2000);
         } else {
           setStatus("error");
