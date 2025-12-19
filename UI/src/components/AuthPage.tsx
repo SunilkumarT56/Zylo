@@ -3,7 +3,7 @@ import { Github, Triangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Logo } from "@/components/Logo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface AuthPageProps {
   onLogin: () => void;
@@ -13,7 +13,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,20 +21,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-         localStorage.setItem("isAuthenticated", "true");
-         onLogin();
-      } else {
-         setError(data.message || "Login failed");
-      }
+      // Simulate API call or actually send magic link here
+      // For now, just navigate to verification
+      navigate(`/verify?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError("An error occurred. Please try again.");
     } finally {
@@ -121,19 +110,6 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                   required
                 />
               </div>
-              <div className="grid gap-2">
-                <Input
-                  id="password"
-                  placeholder="Password"
-                  type="password"
-                  autoComplete="current-password"
-                  disabled={isLoading}
-                  className="bg-black border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-white/20 h-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
               
               {error && (
                 <div className="flex items-center gap-2 rounded-md bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
@@ -149,7 +125,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                 {isLoading ? (
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
                 ) : null}
-                Sign In
+                Continue with Email
               </Button>
             </div>
           </form>

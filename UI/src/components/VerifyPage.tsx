@@ -1,86 +1,102 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Triangle, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Logo } from "@/components/Logo";
 
 export function VerifyPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get("token");
-
-  const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
-  const [message, setMessage] = useState("Verifying your email...");
+  const email = searchParams.get("email");
+  const [code, setCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!token) {
-      setStatus("error");
-      setMessage("Invalid verification link.");
-      return;
+    if (!email) {
+      // If no email, maybe redirect back to login?
+      // navigate("/login");
     }
+  }, [email, navigate]);
 
-    const verifyEmail = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/verify-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) {
+        setError("Please enter a valid 6-digit code");
+        return;
+    }
+    setError("");
+    setIsLoading(true);
 
-        const data = await response.json();
+    try {
+        // Simulate API verification
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Success
+        localStorage.setItem("isAuthenticated", "true");
+        navigate("/dashboard");
 
-        if (response.ok && data.success) {
-          setStatus("success");
-          setMessage("Email verified successfully!");
-          
-          // Set isAuthenticated in localStorage since the backend sets the cookie
-          localStorage.setItem("isAuthenticated", "true");
-
-          // Redirect to home after a delay
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 2000);
-        } else {
-          setStatus("error");
-          setMessage(data.message || "Verification failed.");
-        }
-      } catch (err) {
-        setStatus("error");
-        setMessage("An error occurred during verification.");
-      }
-    };
-
-    verifyEmail();
-  }, [token, navigate]);
+    } catch (err) {
+      setError("Invalid code. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4 font-sans">
       <div className="w-full max-w-sm space-y-8">
         <div className="flex flex-col items-center gap-2 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10">
-            {status === "verifying" && <Triangle className="h-6 w-6 fill-white text-white animate-pulse" />}
-            {status === "success" && <CheckCircle2 className="h-6 w-6 text-green-500" />}
-            {status === "error" && <XCircle className="h-6 w-6 text-red-500" />}
+           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10">
+            <Logo className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {status === "verifying" && "Verifying..."}
-            {status === "success" && "Verified!"}
-            {status === "error" && "Verification Failed"}
+            Check your inbox
           </h1>
           <p className="text-sm text-zinc-400">
-            {message}
+            We've sent a 6-digit code to <span className="text-white">{email}</span>. 
+            Enter it below to verify your account.
           </p>
         </div>
 
-        {status === "error" && (
-          <div className="grid gap-4">
-            <Button 
-              className="bg-white text-black hover:bg-zinc-200"
-              onClick={() => navigate("/auth")}
-            >
-              Back to Login
-            </Button>
+        <form onSubmit={handleSubmit} className="grid gap-4">
+          <div className="grid gap-2">
+            <Input
+              id="code"
+              placeholder="000000"
+              type="text"
+              autoCapitalize="none"
+              autoCorrect="off"
+              className="bg-black border-white/10 text-center text-2xl tracking-[0.5em] text-white placeholder:text-zinc-600 focus-visible:ring-white/20 h-14"
+              value={code}
+              onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                  setCode(val);
+              }}
+              required
+              maxLength={6}
+            />
           </div>
-        )}
+          
+          {error && (
+            <div className="text-sm text-red-500 text-center">
+              {error}
+            </div>
+          )}
+
+          <Button 
+            disabled={isLoading || code.length !== 6} 
+            className="bg-white text-black hover:bg-zinc-200 h-10 font-medium"
+          >
+            {isLoading ? "Verifying..." : "Verify Code"}
+          </Button>
+        </form>
+
+        <div className="text-center text-sm text-zinc-400">
+           <button onClick={() => navigate("/login")} className="hover:text-white transition-colors">
+              Wrong email? Log in again
+           </button>
+        </div>
       </div>
     </div>
   );
