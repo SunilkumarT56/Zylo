@@ -94,3 +94,4 @@ Clone the repository:
 ```bash
 git clone https://github.com/SunilkumarT56/zylo.git
 cd zylo
+npm install
