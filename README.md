@@ -1,5 +1,8 @@
 <img width="1710" height="981" alt="Screenshot 2025-12-21 at 12 10 08 AM" src="https://github.com/user-attachments/assets/0b5a2071-9e14-4a10-a208-b22c56b09d57" />
-# Zylo
+
+---
+
+## Zylo
 
 Zylo is a lightweight, distributed build-and-deployment platform inspired by modern edge-first hosting systems.
 It automates the process of building, deploying, and serving web applications from source code to production.
@@ -89,5 +92,5 @@ Each service communicates through APIs or events.
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/zylo.git
+git clone https://github.com/SunilkumarT56/zylo.git
 cd zylo
