@@ -1,5 +1,7 @@
 
- <img width="1707" height="1022" alt="Screenshot 2025-12-21 at 4 12 25 AM" src="https://github.com/user-attachments/assets/3d3748ed-b3c1-4439-9b88-6a1cfa9d4141" />
+ <img width="836" height="406" alt="Screenshot 2025-12-21 at 2 30 33 PM" src="https://github.com/user-attachments/assets/9b9e70a9-950e-442b-8189-059c7613a670" />
+<img width="1710" height="1020" alt="Screenshot 2025-12-21 at 2 36 12 PM" src="https://github.com/user-attachments/assets/a7828379-48e0-43a1-9c0f-b6dc4c155402" />
+
 
 ---
 ## Auth Flow
