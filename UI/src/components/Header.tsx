@@ -13,7 +13,7 @@ export function Header({ onLogout, userEmail }: HeaderProps) {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Logo className="h-8 w-8 text-white" />
-          <span className="text-xl font-bold text-white tracking-tight">BulDep</span>
+          <span className="text-xl font-bold text-white tracking-tight">Zylo</span>
         </div>
         <div className="flex items-center gap-4">
           {userEmail && (

@@ -1,7 +1,7 @@
 import express from "express";
 import {
   oauthGithubController,
-  redirectHandlerGithubController
+  redirectHandlerGithubController,
   logoutController
 } from "../controllers/auth.controller.js";
 

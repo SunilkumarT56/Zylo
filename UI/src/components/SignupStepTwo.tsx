@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 
 export function SignupStepTwo() {
   const [searchParams] = useSearchParams();
-  const username = searchParams.get("username");
+  const email = searchParams.get("email");
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4 font-sans">
@@ -15,10 +15,10 @@ export function SignupStepTwo() {
             <Logo className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Welcome, {username}
+            Welcome!
           </h1>
           <p className="text-sm text-zinc-400">
-            Choose how you want to sign up
+            {email ? `Signing up with ${email}` : "Choose how you want to sign up"}
           </p>
         </div>
 

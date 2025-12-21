@@ -85,7 +85,7 @@ function App() {
   if (isAuthChecking) {
       return (
           <div className="min-h-screen bg-black flex items-center justify-center text-white">
-              <div className="animate-pulse">Loading...</div>
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
           </div>
       );
   }

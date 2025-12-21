@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
 import axios from "axios";
 import { prisma } from "../config/postgresql.js";
 import { generateJWT} from "../utils/jwt.js";

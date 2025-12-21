@@ -39,10 +39,10 @@ export function AuthPage({ onLogin: _onLogin }: AuthPageProps) {
             <Logo className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Log in to BulDep
+            Log in to Zylo
           </h1>
           <p className="text-sm text-zinc-400">
-            Enter your email and password to continue
+            Build and deploy web apps with Zylo
           </p>
         </div>
 
