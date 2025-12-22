@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +36,8 @@
     "@types/pg": "^8.16.0",
     "@types/redis": "^4.0.10",
     "jsonwebtoken": "^9.0.3",
-    "prisma": "^7.2.0"
+    "prisma": "^7.2.0",
+    "tsc": "^2.0.4",
+    "tsx": "^4.21.0"
   }
 }

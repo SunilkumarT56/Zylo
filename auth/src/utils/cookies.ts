@@ -8,8 +8,8 @@ export const cookieSender = (
 ): void => {
   res.cookie(key, value, {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: false,
+    sameSite: "lax",
     maxAge: parseInt(process.env.COOKIE_MAX_AGE!, 10),
   });
 };

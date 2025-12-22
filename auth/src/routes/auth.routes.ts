@@ -11,5 +11,9 @@ router.post("/email",emailRequestController)
 router.get("/github", oauthGithubController);
 router.get("/github/callback", redirectHandlerGithubController);
 router.post("/logout", logoutController);
+router.get("/health", (req, res) => {
+  res.send("working");
+});
+
 
 export default router;
