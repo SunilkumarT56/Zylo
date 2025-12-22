@@ -1,27 +1,36 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 dotenv.config();
 
-export const authMiddleware = async (
+export const authMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> => {
-  const { auth_token } = req.cookies;
-  console.log(auth_token);
+): void => {
   try {
-    if (!auth_token) {
-      res.status(401).json({ status: false, error: "Unauthorizedd" });
+    const authHeader = req.headers.authorization;
+    console.log("auth header:", authHeader);
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ status: false, error: "Unauthorized" });
       return;
     }
-    const decoded = jwt.verify(auth_token, process.env.JWT_SECRET!) as {
-      userId: string;
-    };
+
+    const token = authHeader.split(" ")[1];
+
+    if (!process.env.JWT_SECRET) {
+      res
+        .status(500)
+        .json({ status: false, error: "Server configuration error" });
+      return;
+    }
+    //@ts-ignore
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+
     (req as any).user = { id: decoded.userId };
     next();
-    return;
   } catch (error) {
-    res.status(401).json({ status: false, error: "Unauthorized" });
+    res.status(401).json({ status: false, error: "Invalid token" });
   }
 };
