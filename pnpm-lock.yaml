@@ -26,6 +26,9 @@ importers:
       '@zylo/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@zylo/errors':
+        specifier: workspace:*
+        version: link:../../packages/errors
       axios:
         specifier: ^1.13.2
         version: 1.13.2
@@ -50,6 +53,9 @@ importers:
       redis:
         specifier: ^5.10.0
         version: 5.10.0
+      swagger-ui-express:
+        specifier: ^5.0.1
+        version: 5.0.1(express@5.2.1)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -81,6 +87,9 @@ importers:
       '@types/redis':
         specifier: ^4.0.10
         version: 4.0.11
+      '@types/swagger-ui-express':
+        specifier: ^4.1.8
+        version: 4.1.8
       '@zylo/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -117,6 +126,9 @@ importers:
       redis:
         specifier: ^5.9.0
         version: 5.10.0
+      tar:
+        specifier: ^7.5.2
+        version: 7.5.2
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -134,85 +146,6 @@ importers:
         specifier: ^4.7.1
         version: 4.21.0
 
-  apps/dashboard:
-    dependencies:
-      '@radix-ui/react-slot':
-        specifier: ^1.2.4
-        version: 1.2.4(@types/react@19.2.7)(react@19.2.3)
-      class-variance-authority:
-        specifier: ^0.7.1
-        version: 0.7.1
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      framer-motion:
-        specifier: ^12.23.26
-        version: 12.23.26(react-dom@19.2.3)(react@19.2.3)
-      lucide-react:
-        specifier: ^0.561.0
-        version: 0.561.0(react@19.2.3)
-      react:
-        specifier: ^19.2.0
-        version: 19.2.3
-      react-dom:
-        specifier: ^19.2.0
-        version: 19.2.3(react@19.2.3)
-      react-router-dom:
-        specifier: ^6.30.2
-        version: 6.30.2(react-dom@19.2.3)(react@19.2.3)
-      tailwind-merge:
-        specifier: ^3.4.0
-        version: 3.4.0
-    devDependencies:
-      '@eslint/js':
-        specifier: ^9.39.1
-        version: 9.39.2
-      '@tailwindcss/vite':
-        specifier: ^4.1.18
-        version: 4.1.18(vite@5.4.21)
-      '@types/node':
-        specifier: ^24.10.1
-        version: 24.10.4
-      '@types/react':
-        specifier: ^19.2.5
-        version: 19.2.7
-      '@types/react-dom':
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.7)
-      '@vitejs/plugin-react':
-        specifier: ^5.1.1
-        version: 5.1.2(vite@5.4.21)
-      autoprefixer:
-        specifier: ^10.4.23
-        version: 10.4.23(postcss@8.5.6)
-      eslint:
-        specifier: ^9.39.1
-        version: 9.39.2
-      eslint-plugin-react-hooks:
-        specifier: ^7.0.1
-        version: 7.0.1(eslint@9.39.2)
-      eslint-plugin-react-refresh:
-        specifier: ^0.4.24
-        version: 0.4.26(eslint@9.39.2)
-      globals:
-        specifier: ^16.5.0
-        version: 16.5.0
-      postcss:
-        specifier: ^8.5.6
-        version: 8.5.6
-      tailwindcss:
-        specifier: ^4.1.18
-        version: 4.1.18
-      typescript:
-        specifier: ~5.9.3
-        version: 5.9.3
-      typescript-eslint:
-        specifier: ^8.46.4
-        version: 8.50.1(eslint@9.39.2)(typescript@5.9.3)
-      vite:
-        specifier: ^5.4.21
-        version: 5.4.21(@types/node@24.10.4)
-
   apps/ingest:
     dependencies:
       '@aws-sdk/client-s3':
@@ -221,6 +154,9 @@ importers:
       '@aws-sdk/client-sqs':
         specifier: ^3.958.0
         version: 3.958.0
+      '@zylo/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       aws-sdk:
         specifier: ^2.1692.0
         version: 2.1693.0
@@ -361,6 +297,85 @@ importers:
         specifier: ^4.7.1
         version: 4.21.0
 
+  apps/ui:
+    dependencies:
+      '@radix-ui/react-slot':
+        specifier: ^1.2.4
+        version: 1.2.4(@types/react@19.2.7)(react@19.2.3)
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      framer-motion:
+        specifier: ^12.23.26
+        version: 12.23.26(react-dom@19.2.3)(react@19.2.3)
+      lucide-react:
+        specifier: ^0.561.0
+        version: 0.561.0(react@19.2.3)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.2.3(react@19.2.3)
+      react-router-dom:
+        specifier: ^6.30.2
+        version: 6.30.2(react-dom@19.2.3)(react@19.2.3)
+      tailwind-merge:
+        specifier: ^3.4.0
+        version: 3.4.0
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.39.1
+        version: 9.39.2
+      '@tailwindcss/vite':
+        specifier: ^4.1.18
+        version: 4.1.18(vite@5.4.21)
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.10.4
+      '@types/react':
+        specifier: ^19.2.5
+        version: 19.2.7
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.7)
+      '@vitejs/plugin-react':
+        specifier: ^5.1.1
+        version: 5.1.2(vite@5.4.21)
+      autoprefixer:
+        specifier: ^10.4.23
+        version: 10.4.23(postcss@8.5.6)
+      eslint:
+        specifier: ^9.39.1
+        version: 9.39.2
+      eslint-plugin-react-hooks:
+        specifier: ^7.0.1
+        version: 7.0.1(eslint@9.39.2)
+      eslint-plugin-react-refresh:
+        specifier: ^0.4.24
+        version: 0.4.26(eslint@9.39.2)
+      globals:
+        specifier: ^16.5.0
+        version: 16.5.0
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
+      tailwindcss:
+        specifier: ^4.1.18
+        version: 4.1.18
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.46.4
+        version: 8.50.1(eslint@9.39.2)(typescript@5.9.3)
+      vite:
+        specifier: ^5.4.21
+        version: 5.4.21(@types/node@24.10.4)
+
   apps/user:
     dependencies:
       '@prisma/adapter-pg':
@@ -372,6 +387,9 @@ importers:
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
+      '@zylo/errors':
+        specifier: workspace:*
+        version: link:../../packages/errors
       '@zylo/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -440,6 +458,12 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+
+  packages/errors:
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
 
   packages/types:
     devDependencies:
@@ -1842,6 +1866,13 @@ packages:
     resolution: {integrity: sha512-aFT2yemJJo+TZCmieA7qnYGQooOS7QfNmYrzGtsYd3g9j5iDP8AimYYAesf79ohjbLG12XxC4nG5DyEnC88AsQ==}
     dev: false
 
+  /@isaacs/fs-minipass@4.0.1:
+    resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      minipass: 7.1.2
+    dev: false
+
   /@jridgewell/gen-mapping@0.3.13:
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
     dependencies:
@@ -2268,6 +2299,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@scarf/scarf@1.4.0:
+    resolution: {integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==}
+    requiresBuild: true
+    dev: false
 
   /@smithy/abort-controller@4.2.7:
     resolution: {integrity: sha512-rzMY6CaKx2qxrbYbqjXWS0plqEy7LOdKHS0bg4ixJ6aoGDPNUcLWk/FRNuCILh7GKLG9TFUXYYeQQldMBBwuyw==}
@@ -3090,6 +3126,13 @@ packages:
     resolution: {integrity: sha512-7NQmHra/JILCd1QqpSzl8+mJRc8ZHz3uDm8YV1Ks9IhK0epEiTw8aIErbvH9PI+6XbqhyIQy3462nEsn7UVzjQ==}
     dev: true
 
+  /@types/swagger-ui-express@4.1.8:
+    resolution: {integrity: sha512-AhZV8/EIreHFmBV5wAs0gzJUNq9JbbSXgJLQubCC0jtIo6prnI9MIRRxnU4MZX9RB9yXxF1V4R7jtLl/Wcj31g==}
+    dependencies:
+      '@types/express': 5.0.6
+      '@types/serve-static': 2.2.0
+    dev: true
+
   /@types/webidl-conversions@7.0.3:
     resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
 
@@ -3567,6 +3610,11 @@ packages:
     engines: {node: '>= 14.16.0'}
     dependencies:
       readdirp: 4.1.2
+
+  /chownr@3.0.0:
+    resolution: {integrity: sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==}
+    engines: {node: '>=18'}
+    dev: false
 
   /citty@0.1.6:
     resolution: {integrity: sha512-tskPPKEs8D2KPafUypv2gxwJP8h/OaJmC82QQGGDQcHvXX43xF2VDACcJVmZ0EuSxkpO9Kc4MlrA3q0+FG58AQ==}
@@ -4938,6 +4986,18 @@ packages:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
     dev: true
 
+  /minipass@7.1.2:
+    resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dev: false
+
+  /minizlib@3.1.0:
+    resolution: {integrity: sha512-KZxYo1BUkWD2TVFLr0MQoM8vUUigWD3LlD83a/75BqC+4qE0Hb1Vo5v1FgcfaNXvfXzr+5EhQ6ing/CaBijTlw==}
+    engines: {node: '>= 18'}
+    dependencies:
+      minipass: 7.1.2
+    dev: false
+
   /mkdirp@1.0.4:
     resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
     engines: {node: '>=10'}
@@ -5846,6 +5906,22 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
+  /swagger-ui-dist@5.31.0:
+    resolution: {integrity: sha512-zSUTIck02fSga6rc0RZP3b7J7wgHXwLea8ZjgLA3Vgnb8QeOl3Wou2/j5QkzSGeoz6HusP/coYuJl33aQxQZpg==}
+    dependencies:
+      '@scarf/scarf': 1.4.0
+    dev: false
+
+  /swagger-ui-express@5.0.1(express@5.2.1):
+    resolution: {integrity: sha512-SrNU3RiBGTLLmFU8GIJdOdanJTl4TOmT27tt3bWWHppqYmAZ6IDuEuBvMU6nZq0zLEe6b/1rACXCgLZqO6ZfrA==}
+    engines: {node: '>= v0.10.32'}
+    peerDependencies:
+      express: '>=4.0.0 || >=5.0.0-beta'
+    dependencies:
+      express: 5.2.1
+      swagger-ui-dist: 5.31.0
+    dev: false
+
   /tailwind-merge@3.4.0:
     resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
     dev: false
@@ -5858,6 +5934,17 @@ packages:
     resolution: {integrity: sha512-g9ljZiwki/LfxmQADO3dEY1CbpmXT5Hm2fJ+QaGKwSXUylMybePR7/67YW7jOrrvjEgL1Fmz5kzyAjWVWLlucg==}
     engines: {node: '>=6'}
     dev: true
+
+  /tar@7.5.2:
+    resolution: {integrity: sha512-7NyxrTE4Anh8km8iEy7o0QYPs+0JKBTj5ZaqHg6B39erLg0qYXN3BijtShwbsNSvQ+LN75+KV+C4QR/f6Gwnpg==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@isaacs/fs-minipass': 4.0.1
+      chownr: 3.0.0
+      minipass: 7.1.2
+      minizlib: 3.1.0
+      yallist: 5.0.0
+    dev: false
 
   /tinyexec@1.0.2:
     resolution: {integrity: sha512-W/KYk+NFhkmsYpuHq5JykngiOCnxeVL8v8dFnqxSD8qEEdRfXk1SDM6JzNqcERbcGYj9tMrDQBYV9cjgnunFIg==}
@@ -6256,6 +6343,11 @@ packages:
   /yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
     dev: true
+
+  /yallist@5.0.0:
+    resolution: {integrity: sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==}
+    engines: {node: '>=18'}
+    dev: false
 
   /yn@3.1.1:
     resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}

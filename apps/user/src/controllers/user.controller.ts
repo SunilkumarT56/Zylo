@@ -5,10 +5,11 @@ import axios from "axios";
 import { enqueueEvent } from "../config/enque.js";
 import {
   getLastCommits,
-  getRepoRootDirectories,
+  getAllRepoDirectories,
   getRepoDirectoryContents,
   detectFrontendFramework,
 } from "../services/github.service.js";
+import { ERROR_CODES } from "@zylo/errors";
 
 export const userProfile = async (
   req: AuthenticateUserRequest,
@@ -35,7 +36,7 @@ export const userProfile = async (
   const user = rows[0];
 
   if (!user) {
-    res.status(401).json({ status: false, error: "Unauthorized" });
+    res.status(401).json({ status: false });
     return;
   }
   console.log(user);
@@ -53,7 +54,7 @@ export const repoListController = async (
   const pageNumber = Number(req.query.page ?? 1);
 
   if (!Number.isInteger(pageNumber) || pageNumber < 1) {
-    res.status(400).json({ error: "Invalid page number" });
+    res.status(400).json({ error: ERROR_CODES.INVALID_PAGE_NUMBER });
     return;
   }
 
@@ -80,7 +81,9 @@ export const repoListController = async (
   const user = rows[0];
 
   if (!user) {
-    res.status(401).json({ status: false, error: "Unauthorized" });
+    res
+      .status(401)
+      .json({ status: false, error: ERROR_CODES.UNAUTHORIZED_ACCESS });
     return;
   }
   console.log(user);
@@ -89,7 +92,7 @@ export const repoListController = async (
   const { login, avatar_url } = user;
 
   if (!access_token) {
-    res.status(400).json({ error: "GitHub account not linked" });
+    res.status(400).json({ error: ERROR_CODES.GITHUB_NOT_LINKED });
     return;
   }
 
@@ -136,7 +139,7 @@ export const repoPreviewController = async (
   const { id: userId } = req.user as { id: string };
 
   if (!owner || !repoName) {
-    res.status(400).json({ error: "Missing repo info" });
+    res.status(400).json({ error: ERROR_CODES.MISSING_REPO_DATA });
     return;
   }
   const { rows } = await pool.query(
@@ -151,7 +154,7 @@ export const repoPreviewController = async (
 
   const accessToken = rows[0]?.access_token;
   if (!accessToken) {
-    res.status(400).json({ error: "GitHub not linked" });
+    res.status(400).json({ error: ERROR_CODES.GITHUB_NOT_LINKED });
     return;
   }
 
@@ -208,7 +211,7 @@ export const importRepoController = async (
   const { id: userId } = req.user as { id: string };
 
   if (!owner || !repoName) {
-    res.status(400).json({ error: "Missing repo info" });
+    res.status(400).json({ error: ERROR_CODES.MISSING_REPO_DATA });
     return;
   }
   const { rows } = await pool.query(
@@ -223,11 +226,12 @@ export const importRepoController = async (
 
   const accessToken = rows[0]?.access_token;
   if (!accessToken) {
-    res.status(400).json({ error: "GitHub not linked" });
+    res.status(400).json({ error: ERROR_CODES.GITHUB_NOT_LINKED });
     return;
   }
+  let path = "";
 
-  const dirs = await getRepoRootDirectories(accessToken, owner, repoName);
+  const dirs = await getAllRepoDirectories(accessToken, owner, repoName, path);
   console.log(dirs);
   res.json({
     status: true,
@@ -243,7 +247,7 @@ export const frameworkDetectController = async (
   const { id: userId } = req.user as { id: string };
 
   if (!owner || !repoName) {
-    res.status(400).json({ error: "Missing repo info" });
+    res.status(400).json({ error: ERROR_CODES.MISSING_REPO_DATA });
     return;
   }
   const { rows } = await pool.query(
@@ -258,7 +262,7 @@ export const frameworkDetectController = async (
 
   const accessToken = rows[0]?.access_token;
   if (!accessToken) {
-    res.status(400).json({ error: "GitHub not linked" });
+    res.status(400).json({ error: ERROR_CODES.GITHUB_NOT_LINKED });
     return;
   }
   const files = await getRepoDirectoryContents(
@@ -340,4 +344,43 @@ export const deployProjectController = async (
   console.log(projectId);
 
   res.json({ status: true, deploymentId });
+};
+export const repoInnerDirectoriesController = async (
+  req: AuthenticateUserRequest,
+  res: Response
+) => {
+  const { owner, repoName, path } = req.body;
+  const { id: userId } = req.user as { id: string };
+
+  if (!owner || !repoName) {
+    res.status(400).json({ error: ERROR_CODES.MISSING_REPO_DATA });
+    return;
+  }
+  const { rows } = await pool.query(
+    `
+    SELECT access_token
+    FROM oauth_accounts
+    WHERE user_id = $1 AND provider = 'github'
+    LIMIT 1
+    `,
+    [userId]
+  );
+
+  const accessToken = rows[0]?.access_token;
+  if (!accessToken) {
+    res.status(400).json({ error: ERROR_CODES.GITHUB_NOT_LINKED });
+    return;
+  }
+
+  const directories = await getAllRepoDirectories(
+    accessToken,
+    owner,
+    repoName,
+    path || ""
+  );
+
+  res.json({
+    status: true,
+    directories,
+  });
 };

@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "sudo turbo dev",
+    "tunnel" : "ngrok http 6000",
     "lint": "turbo lint",
     "test": "turbo test",
     "clean": "turbo clean"

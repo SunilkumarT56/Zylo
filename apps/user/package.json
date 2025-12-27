@@ -22,7 +22,8 @@
     "express": "^5.2.1",
     "pg": "^8.16.3",
     "typescript": "^5.9.3",
-    "@zylo/types": "workspace:*"
+    "@zylo/types": "workspace:*",
+    "@zylo/errors": "workspace:*"
   },
   "devDependencies": {
     "@aws-sdk/client-sqs": "^3.958.0",

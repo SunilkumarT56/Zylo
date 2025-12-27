@@ -1,97 +1,132 @@
-import { execSync } from "child_process";
+import { spawn } from "child_process";
 import fs from "fs";
-import redis from "redis";
 import path from "path";
+import redis from "redis";
+import * as tar from "tar";
 import { fileURLToPath } from "url";
-import yaml from "js-yaml";
-
-const config: any = yaml.load(fs.readFileSync("./vercel-clone.yml", "utf-8"));
 
 const publisher = redis.createClient();
-publisher.connect();
+await publisher.connect();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export async function buildReactProject(deploymentId: string) {
-  let projectPath = path.join(__dirname, "../../output", deploymentId);
-  const outputPath = path.join(__dirname, "../../builded-folder", deploymentId);
+  const projectPath = path.resolve(__dirname, "../../output", deploymentId);
+  const outputPath = path.resolve(
+    __dirname,
+    "../../builded-folder",
+    deploymentId
+  );
 
-  if (config.root && config.root.trim() !== "") {
-    projectPath = path.join(projectPath, config.root);
+  // ─────────────────────────────────────────────
+  // 1️⃣ Validate input
+  // ─────────────────────────────────────────────
+  if (!fs.existsSync(projectPath)) {
+    throw new Error(`Project path not found: ${projectPath}`);
+  }
+
+  if (!fs.existsSync(path.join(projectPath, "package.json"))) {
+    await publisher.hSet("status", deploymentId, "failed");
+    throw new Error("No package.json found in project");
   }
 
   fs.mkdirSync(outputPath, { recursive: true });
 
-  console.log("📂 Final projectPath =", projectPath);
+  console.log(`🚀 Building project ${deploymentId}`);
 
   try {
-    console.log("📄 Files in projectPath:", fs.readdirSync(projectPath));
-  } catch (e) {
-    console.log("❌ ERROR: projectPath doesn't exist");
-  }
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(
+        "docker",
+        [
+          "run",
+          "--rm",
+          "-v",
+          `${projectPath}:/src:ro`,
+          "node:20-alpine",
+          "sh",
+          "-c",
+          `
+set -euo pipefail
 
-  if (!fs.existsSync(path.join(projectPath, "package.json"))) {
-    console.error("❌ No package.json found in:", projectPath);
-    throw new Error("Project has no package.json (wrong upload or wrong root folder)");
-  }
+mkdir -p /tmp/workspace /tmp/output /tmp/pnpm-home /tmp/pnpm-store
+cp -R /src/. /tmp/workspace/
+cd /tmp/workspace
 
-  console.log(`🚀 Building project ${deploymentId}...`);
+export PNPM_HOME=/tmp/pnpm-home
+export PATH="$PNPM_HOME:$PATH"
+export PNPM_STORE_DIR=/tmp/pnpm-store
+export CI=true
 
-  try {
-    execSync(
-      `
-      docker run --rm --user root \
-        -v ${projectPath}:/src \
-        -v ${outputPath}:/build \
-        node:20-alpine \
-        sh -c "
-          set -e
-          cd /src
+corepack enable
+corepack prepare pnpm@8.15.5 --activate
 
-          echo '📦 Installing dependencies...'
+if [ -f pnpm-lock.yaml ]; then
+  pnpm install --no-frozen-lockfile >&2
+elif [ -f yarn.lock ]; then
+  npm install -g yarn >/dev/null 2>&1
+  yarn install >&2
+else
+  npm install --legacy-peer-deps >&2
+fi
 
-          if [ -f pnpm-lock.yaml ]; then
-            corepack enable && pnpm i --frozen-lockfile
-          elif [ -f yarn.lock ]; then
-            npm i -g yarn >/dev/null 2>&1 && yarn install --frozen-lockfile
-          else
-            npm install --legacy-peer-deps
-          fi
+if grep -q "\\"build\\"" package.json; then
+  npm run build >&2
+else
+  npx vite build >&2
+fi
 
-          echo '⚙ Building the project...'
-          (npm run build || yarn build || pnpm build || npx vite build)
+if [ -d dist ]; then
+  cp -R dist/. /tmp/output/
+elif [ -d build ]; then
+  cp -R build/. /tmp/output/
+elif [ -d out ]; then
+  cp -R out/. /tmp/output/
+elif [ -d .next/out ]; then
+  cp -R .next/out/. /tmp/output/
+else
+  echo "❌ No build output directory found" >&2
+  exit 1
+fi
 
-          mkdir -p /build
+# 🔥 TAR STREAM OUTPUT
+tar -C /tmp/output -cf - .
+`,
+        ],
+        {
+          stdio: ["ignore", "pipe", "pipe"],
+        }
+      );
 
-          if [ -d dist ]; then
-            cp -r dist/* /build/;
-          elif [ -d build ]; then
-            cp -r build/* /build/;
-          elif [ -d out ]; then
-            cp -r out/* /build/;
-          elif [ -d .next ]; then
-            echo '⚙ Detected Next.js build';
-            if [ -d out ]; then
-              cp -r out/* /build/;
-            else
-              echo '❌ Next.js app is not configured for static export';
-              echo '👉 Add output: \"export\" in next.config.js';
-              exit 1;
-            fi
-          else
-            echo '❌ No build directory found';
-            exit 1;
-          fi
-        "
-      `,
-      { stdio: "inherit" }
-    );
+      // Extract tar stream on host
+      const extractor = tar.x({
+        cwd: outputPath,
+        strip: 0,
+      });
 
-    console.log(`✅ Build complete for ${deploymentId}`);
+      child.stdout.pipe(extractor);
+
+      child.stderr.on("data", (data) => {
+        console.error(`[docker] ${data.toString()}`);
+      });
+
+      child.on("error", reject);
+
+      child.on("close", (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Docker exited with code ${code}`));
+        }
+      });
+    });
+
     await publisher.hSet("status", deploymentId, "builded");
+    console.log(`✅ Build completed for ${deploymentId}`);
   } catch (err) {
-    console.error(`❌ Build failed for ${deploymentId}:`);
+    console.error(`❌ Build failed for ${deploymentId}`, err);
+    await publisher.hSet("status", deploymentId, "failed");
     throw err;
   }
 }

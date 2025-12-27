@@ -1,0 +1,13 @@
+{
+  "name": "@zylo/errors",
+  "version": "1.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "type":"module",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+      "@repo/typescript-config": "workspace:*"
+  }
+}

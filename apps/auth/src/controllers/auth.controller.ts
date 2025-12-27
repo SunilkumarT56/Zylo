@@ -9,6 +9,7 @@ import { cookieSender } from "../utils/cookies.js";
 import { redisClient } from "../config/redis.js";
 import { sendEmail } from "../services/email.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ERROR_CODES } from "@zylo/errors";
 
 export const oauthGithubController = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -40,7 +41,7 @@ export const redirectHandlerGithubController = asyncHandler(
       const { github_oauth_state } = req.cookies;
 
       if (!state || state !== github_oauth_state) {
-        res.status(401).json({ status: false, error: "Invalid OAuth state" });
+        res.status(401).json({ status: false, error: ERROR_CODES.INVALID_OAUTH_STATE });
         return;
       }
 
@@ -57,7 +58,7 @@ export const redirectHandlerGithubController = asyncHandler(
 
       const accessToken = tokenRes.data.access_token;
       if (!accessToken) {
-        res.status(401).json({ status: false, error: "OAuth failed" });
+        res.status(401).json({ status: false, error: ERROR_CODES.OAUTH_FAILED });
         return;
       }
 
@@ -141,7 +142,7 @@ export const redirectHandlerGithubController = asyncHandler(
     } catch (err) {
       await client.query("ROLLBACK");
       console.error("GitHub OAuth error:", err);
-      res.status(500).json({ status: false, error: "OAuth login failed" });
+      res.status(500).json({ status: false, error: ERROR_CODES.OAUTH_FAILED});
     } finally {
       client.release();
     }
@@ -161,7 +162,7 @@ export const emailRequestController = asyncHandler(
     const client = await pool.connect();
 
     if (!email) {
-      return res.status(400).json({ error: "Email required" });
+      return res.status(400).json({ error: ERROR_CODES.EMAIL_REQUIRED });
     }
 
     const userRes = await client.query(

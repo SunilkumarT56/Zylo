@@ -7,6 +7,12 @@ export interface AuthenticateUserRequest extends Request {
     avatar_url?: string;
   };
 }
+export interface DirNode {
+  name: string;
+  path: string;
+  children?: DirNode[];
+  type?: "file" | "dir";
+}
 
 export interface DeployData extends AuthenticateUserRequest {
   deploy: {
@@ -70,4 +76,16 @@ export interface GhData {
     verified: boolean;
     visibility: string;
   }[];
+}
+export interface DeploymentWithRepo {
+  deployment_id: string;
+  status: string;
+  created_at: string;
+  repo_owner: string;
+  repo_name: string;
+  root_dir: string;
+}
+export interface RepoData {
+  repourl: string;
+  subDir?: string;
 }

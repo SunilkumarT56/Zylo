@@ -8,6 +8,7 @@ import {
   importRepoController,
   frameworkDetectController,
   deployProjectController,
+  repoInnerDirectoriesController,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.post("/github-url", authMiddleware, externalUrlController);
 router.post("/new/import", authMiddleware, importRepoController);
 router.post("/new/framework", authMiddleware, frameworkDetectController);
 router.post("/new/deploy", authMiddleware, deployProjectController as any);
+router.post("/new/inner-dir", authMiddleware, repoInnerDirectoriesController);
 
 export default router;

@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import type { DirNode } from "@zylo/types";
 export const getLastCommits = async (
   accessToken: string,
   owner: string,
@@ -25,13 +25,15 @@ export const getLastCommits = async (
     time: c.commit.author?.date,
   }));
 };
-export const getRepoRootDirectories = async (
+
+export const getAllRepoDirectories = async (
   accessToken: string,
   owner: string,
-  repo: string
-) => {
+  repo: string,
+  path: string = ""
+): Promise<DirNode[]> => {
   const res = await axios.get(
-    `https://api.github.com/repos/${owner}/${repo}/contents`,
+    `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -41,12 +43,27 @@ export const getRepoRootDirectories = async (
     }
   );
 
-  return res.data
-    .filter((item: any) => item.type === "dir")
-    .map((dir: any) => ({
-      name: dir.name,
-      path: dir.path,
-    }));
+  const directories: DirNode[] = [];
+
+  for (const item of res.data) {
+    if (item.type === "dir") {
+      const children = await getAllRepoDirectories(
+        accessToken,
+        owner,
+        repo,
+        item.path
+      );
+
+      directories.push({
+        name: item.name,
+        path: item.path,
+        type: "dir",
+        children,
+      });
+    }
+  }
+
+  return directories;
 };
 export const getRepoDirectoryContents = async (
   accessToken: string,
