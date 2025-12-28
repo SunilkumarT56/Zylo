@@ -1,25 +1,22 @@
-import type { Request, Response } from "express";
-import type { AuthenticateUserRequest, DeployData } from "@zylo/types";
-import { pool } from "../config/postgresql.js";
-import axios from "axios";
-import { enqueueEvent } from "../config/enque.js";
+import type { Request, Response } from 'express';
+import type { AuthenticateUserRequest, DeployData } from '@zylo/types';
+import { pool } from '../config/postgresql.js';
+import axios from 'axios';
+import { enqueueEvent } from '../config/enque.js';
 import {
   getLastCommits,
   getAllRepoDirectories,
   getRepoDirectoryContents,
   detectFrontendFramework,
-} from "../services/github.service.js";
-import { ERROR_CODES } from "@zylo/errors";
+} from '../services/github.service.js';
+import { ERROR_CODES } from '@zylo/errors';
 
-export const userProfile = async (
-  req: AuthenticateUserRequest,
-  res: Response
-): Promise<void> => {
+export const userProfile = async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
   const { id } = req.user as { id: string };
 
   const { rows } = await pool.query(
     `
-  SELECT 
+  SELECT
     u.id,
     u.email,
     u.avatar_url,
@@ -30,7 +27,7 @@ export const userProfile = async (
   WHERE u.id = $1
   LIMIT 1
   `,
-    [id]
+    [id],
   );
 
   const user = rows[0];
@@ -48,7 +45,7 @@ export const userProfile = async (
 };
 export const repoListController = async (
   req: AuthenticateUserRequest,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const { id } = req.user as { id: string };
   const pageNumber = Number(req.query.page ?? 1);
@@ -60,7 +57,7 @@ export const repoListController = async (
 
   const { rows } = await pool.query(
     `
-    SELECT 
+    SELECT
       u.id,
       u.avatar_url,
       gp.name AS github_name,
@@ -75,15 +72,13 @@ export const repoListController = async (
     WHERE u.id = $1
     LIMIT 1;
     `,
-    [id]
+    [id],
   );
 
   const user = rows[0];
 
   if (!user) {
-    res
-      .status(401)
-      .json({ status: false, error: ERROR_CODES.UNAUTHORIZED_ACCESS });
+    res.status(401).json({ status: false, error: ERROR_CODES.UNAUTHORIZED_ACCESS });
     return;
   }
   console.log(user);
@@ -98,17 +93,17 @@ export const repoListController = async (
 
   const PER_PAGE = 6;
 
-  const githubRes = await axios.get("https://api.github.com/user/repos", {
+  const githubRes = await axios.get('https://api.github.com/user/repos', {
     headers: {
       Authorization: `Bearer ${access_token}`,
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
     },
     params: {
       per_page: PER_PAGE,
       page: pageNumber,
-      sort: "updated",
-      direction: "desc",
+      sort: 'updated',
+      direction: 'desc',
     },
   });
 
@@ -131,10 +126,7 @@ export const repoListController = async (
     repos,
   });
 };
-export const repoPreviewController = async (
-  req: AuthenticateUserRequest,
-  res: Response
-) => {
+export const repoPreviewController = async (req: AuthenticateUserRequest, res: Response) => {
   const { owner, repoName } = req.body;
   const { id: userId } = req.user as { id: string };
 
@@ -149,7 +141,7 @@ export const repoPreviewController = async (
     WHERE user_id = $1 AND provider = 'github'
     LIMIT 1
     `,
-    [userId]
+    [userId],
   );
 
   const accessToken = rows[0]?.access_token;
@@ -158,26 +150,20 @@ export const repoPreviewController = async (
     return;
   }
 
-  const repoRes = await axios.get(
-    `https://api.github.com/repos/${owner}/${repoName}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    }
-  );
+  const repoRes = await axios.get(`https://api.github.com/repos/${owner}/${repoName}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
 
-  const langRes = await axios.get(
-    `https://api.github.com/repos/${owner}/${repoName}/languages`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/vnd.github+json",
-      },
-    }
-  );
+  const langRes = await axios.get(`https://api.github.com/repos/${owner}/${repoName}/languages`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/vnd.github+json',
+    },
+  });
   const commitRes = await getLastCommits(accessToken, owner, repoName);
   console.log(commitRes);
 
@@ -203,10 +189,7 @@ export const externalUrlController = async (req: Request, res: Response) => {
     status: true,
   });
 };
-export const importRepoController = async (
-  req: AuthenticateUserRequest,
-  res: Response
-) => {
+export const importRepoController = async (req: AuthenticateUserRequest, res: Response) => {
   const { owner, repoName } = req.body;
   const { id: userId } = req.user as { id: string };
 
@@ -221,7 +204,7 @@ export const importRepoController = async (
     WHERE user_id = $1 AND provider = 'github'
     LIMIT 1
     `,
-    [userId]
+    [userId],
   );
 
   const accessToken = rows[0]?.access_token;
@@ -229,7 +212,7 @@ export const importRepoController = async (
     res.status(400).json({ error: ERROR_CODES.GITHUB_NOT_LINKED });
     return;
   }
-  let path = "";
+  let path = '';
 
   const dirs = await getAllRepoDirectories(accessToken, owner, repoName, path);
   console.log(dirs);
@@ -238,10 +221,7 @@ export const importRepoController = async (
     directories: dirs,
   });
 };
-export const frameworkDetectController = async (
-  req: AuthenticateUserRequest,
-  res: Response
-) => {
+export const frameworkDetectController = async (req: AuthenticateUserRequest, res: Response) => {
   const { owner, repoName, rootDirectory } = req.body;
   console.log(owner, repoName, rootDirectory);
   const { id: userId } = req.user as { id: string };
@@ -257,7 +237,7 @@ export const frameworkDetectController = async (
     WHERE user_id = $1 AND provider = 'github'
     LIMIT 1
     `,
-    [userId]
+    [userId],
   );
 
   const accessToken = rows[0]?.access_token;
@@ -265,12 +245,7 @@ export const frameworkDetectController = async (
     res.status(400).json({ error: ERROR_CODES.GITHUB_NOT_LINKED });
     return;
   }
-  const files = await getRepoDirectoryContents(
-    accessToken,
-    owner,
-    repoName,
-    rootDirectory
-  );
+  const files = await getRepoDirectoryContents(accessToken, owner, repoName, rootDirectory);
   const response = await detectFrontendFramework(files);
   console.log(response);
   res.json({
@@ -278,10 +253,7 @@ export const frameworkDetectController = async (
     response,
   });
 };
-export const deployProjectController = async (
-  req: DeployData,
-  res: Response
-) => {
+export const deployProjectController = async (req: DeployData, res: Response) => {
   const { id: userId } = req.user as { id: string };
   const data = req.body as DeployData;
   const { owner, repoName, rootDirectory, framework } = data.deploy;
@@ -290,7 +262,7 @@ export const deployProjectController = async (
     SELECT id FROM projects
     WHERE user_id = $1 AND repo_owner = $2 AND repo_name = $3
     `,
-    [userId, owner, repoName]
+    [userId, owner, repoName],
   );
 
   let projectId = rows[0]?.id;
@@ -303,7 +275,7 @@ export const deployProjectController = async (
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id
       `,
-      [userId, owner, repoName, rootDirectory, framework]
+      [userId, owner, repoName, rootDirectory, framework],
     );
     projectId = result.rows[0].id;
   } else {
@@ -313,7 +285,7 @@ export const deployProjectController = async (
       SET root_dir = $1, framework = $2
       WHERE id = $3
       `,
-      [rootDirectory, framework, projectId]
+      [rootDirectory, framework, projectId],
     );
   }
   const deploymentRes = await pool.query(
@@ -336,7 +308,7 @@ export const deployProjectController = async (
       data.deploy.buildCommand,
       data.deploy.outputDir,
       data.deploy.envs,
-    ]
+    ],
   );
 
   const deploymentId = deploymentRes.rows[0].id;
@@ -347,7 +319,7 @@ export const deployProjectController = async (
 };
 export const repoInnerDirectoriesController = async (
   req: AuthenticateUserRequest,
-  res: Response
+  res: Response,
 ) => {
   const { owner, repoName, path } = req.body;
   const { id: userId } = req.user as { id: string };
@@ -363,7 +335,7 @@ export const repoInnerDirectoriesController = async (
     WHERE user_id = $1 AND provider = 'github'
     LIMIT 1
     `,
-    [userId]
+    [userId],
   );
 
   const accessToken = rows[0]?.access_token;
@@ -372,15 +344,45 @@ export const repoInnerDirectoriesController = async (
     return;
   }
 
-  const directories = await getAllRepoDirectories(
-    accessToken,
-    owner,
-    repoName,
-    path || ""
-  );
+  const directories = await getAllRepoDirectories(accessToken, owner, repoName, path || '');
 
   res.json({
     status: true,
     directories,
   });
+};
+export const deployDashboard = async (req: Request, res: Response): Promise<void> => {
+  const { deploymentId } = req.body;
+  const { rows } = await pool.query(
+    `
+   SELECT
+  d.id,
+  d.status,
+  d.started_at,
+  d.finished_at,
+  p.repo_owner,
+  p.repo_name,
+  p.root_dir,
+  p.framework,
+  p.user_id,
+  u.avatar_url,
+  gp.login
+FROM deployments d
+JOIN projects p
+  ON p.id = d.project_id
+JOIN users u
+  ON u.id = p.user_id
+JOIN github_profiles gp
+  ON gp.user_id = u.id
+WHERE d.id = $1
+LIMIT 1;
+    `,
+    [deploymentId],
+  );
+  const deployment = rows[0];
+  console.log(deployment);
+  res.json({
+    status : true ,
+    deployment
+  })
 };

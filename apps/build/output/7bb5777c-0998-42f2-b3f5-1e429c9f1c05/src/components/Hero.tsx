@@ -33,12 +33,12 @@ const FileTreeItem = ({ node, level = 0 }: { node: Directory; level?: number }) 
     const hasChildren = node.children && node.children.length > 0;
 
     return (
-        <div
-            className="select-none"
+        <div 
+            className="select-none" 
             onMouseEnter={() => hasChildren && setIsOpen(true)}
             onMouseLeave={() => hasChildren && setIsOpen(false)}
         >
-            <div
+            <div 
                 className={`flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-zinc-900/50 cursor-pointer text-sm transition-colors text-zinc-400 hover:text-white group`}
                 style={{ paddingLeft: `${level * 16 + 8}px` }}
                 onClick={() => hasChildren && setIsOpen(!isOpen)}
@@ -48,15 +48,15 @@ const FileTreeItem = ({ node, level = 0 }: { node: Directory; level?: number }) 
                         {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </span>
                 ) : (
-                    <span className="w-4" />
+                    <span className="w-4" /> 
                 )}
-
+                
                 {hasChildren ? (
                     <Folder className={`h-4 w-4 ${isOpen ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 ) : (
                     <Folder className="h-4 w-4 text-zinc-600" />
                 )}
-
+                
                 <span className="font-mono text-xs">{node.name}</span>
             </div>
             {isOpen && hasChildren && (
@@ -111,11 +111,11 @@ export function Hero() {
   const [, setCommitPage] = useState(1);
   const [manualRepoUrl, setManualRepoUrl] = useState("");
   const [manualImportLoading, setManualImportLoading] = useState(false);
-
+  
   // Configuration State
   const [showConfig, setShowConfig] = useState(false);
   const [deploying, setDeploying] = useState(false);
-
+  
 
 
   useEffect(() => {
@@ -140,22 +140,22 @@ export function Hero() {
         const response = await fetch(`https://untolerative-len-rumblingly.ngrok-free.dev/user/new?page=${currentPage}&search=${searchQuery}`, {
             headers
         });
-
+        
         if (!response.ok) {
             throw new Error("Failed to fetch repositories");
         }
 
         const data = await response.json();
-
+        
         setRepos(data.repos || []);
         setHasNextPage(data.hasNextPage);
         setUserLogin(data.login);
         setUserAvatar(data.avatar_url);
-
+        
       } catch (err) {
         console.error("Error fetching repos:", err);
         setError("Failed to load repositories.");
-        setRepos([]);
+        setRepos([]); 
       } finally {
         setLoading(false);
       }
@@ -168,7 +168,7 @@ export function Hero() {
     return () => clearTimeout(timeoutId);
 
   }, [currentPage, searchQuery]);
-
+    
   const handleNext = () => {
     if (hasNextPage) setCurrentPage(prev => prev + 1);
   };
@@ -190,7 +190,7 @@ export function Hero() {
             return;
         }
 
-        const endpoint = isImportAction
+        const endpoint = isImportAction 
             ? "https://untolerative-len-rumblingly.ngrok-free.dev/user/new/import"
             : "https://untolerative-len-rumblingly.ngrok-free.dev/user/preview";
 
@@ -209,7 +209,7 @@ export function Hero() {
 
         if (response.ok) {
             const data = await response.json();
-
+            
             let robustData: PreviewData;
 
             if (isImportAction && data.directories && Array.isArray(data.directories)) {
@@ -246,17 +246,17 @@ export function Hero() {
                     language: data.language || repo.language || "Unknown",
                     languages: data.languages || {},
                     commits: data.commits || [],
-                    directories: data.directories || [],
+                    directories: data.directories || [], 
                     owner: {
                         login: data.owner?.login || owner,
                         avatar_url: data.owner?.avatar_url || userAvatar || ""
                     }
                 };
             }
-
+            
             setPreviewData(robustData);
             setCommitPage(1);
-
+            
             if (isImportAction) {
                 setShowConfig(true);
             } else {
@@ -272,7 +272,7 @@ export function Hero() {
 
   const handleManualImport = async () => {
       if (!manualRepoUrl.trim()) return;
-
+      
       setManualImportLoading(true);
       try {
         let token = localStorage.getItem("authToken");
@@ -298,7 +298,7 @@ export function Hero() {
                  data.owner = { login: userLogin, avatar_url: userAvatar || "" };
             }
             setPreviewData(data);
-            setCommitPage(1);
+            setCommitPage(1); 
             setError(null);
             setShowConfig(true);
         }
@@ -311,7 +311,7 @@ export function Hero() {
 
   const handleFinalDeploy = async (config: ProjectConfig) => {
       if (!previewData) return;
-
+      
       setDeploying(true);
       try {
         let token = localStorage.getItem("authToken");
@@ -349,38 +349,11 @@ export function Hero() {
 
         if (response.ok) {
             const data = await response.json();
-
-            // Check if deploymentId exists in the response
-            const deploymentId = data.deploymentId;
-
-            if (deploymentId) {
-                // Store deploymentId locally
-                localStorage.setItem("currentDeploymentId", deploymentId);
-
-                // Send post request to dashboard
-                try {
-                     await fetch("https://untolerative-len-rumblingly.ngrok-free.dev/user/deploy-dashboard", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${token}`,
-                           "ngrok-skip-browser-warning": "true",
-                        },
-                        body: JSON.stringify({
-                            deploymentId: deploymentId
-                        })
-                    });
-                } catch (dashboardError) {
-                    console.error("Failed to report deployment dashboard:", dashboardError);
-                    // We continue even if this fails, as the deployment itself succeeded
-                }
-            }
-
             if (data.status === true) {
                  navigate("/deploying");
             } else {
                  setShowConfig(false);
-                 setImportingRepoId(null);
+                 setImportingRepoId(null); 
             }
         } else {
             setError("Deployment failed. Please try again.");
@@ -396,7 +369,7 @@ export function Hero() {
       return (
           <div className="min-h-screen bg-black text-white pt-24 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300 relative">
 
-              <ImportConfiguration
+              <ImportConfiguration 
                   repo={previewData}
                   onBack={() => setShowConfig(false)}
                   onDeploy={handleFinalDeploy}
@@ -420,11 +393,11 @@ export function Hero() {
             Import a repository to start deploying within seconds.
           </p>
         </div>
-
+      
       <div className="w-full flex flex-col lg:flex-row gap-8 relative z-10 pb-20">
         {/* Left Column: Search & Repos */}
         <div className="w-full lg:w-3/5 flex flex-col gap-6">
-
+            
             {/* Import Card */}
             <div className="rounded-xl border border-zinc-800 bg-black overflow-hidden">
                 <div className="p-6 space-y-6">
@@ -434,14 +407,14 @@ export function Hero() {
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
                                 <Github className="h-4 w-4" />
                             </div>
-                            <Input
-                                placeholder="Enter GitHub URL to deploy..."
+                            <Input 
+                                placeholder="Enter GitHub URL to deploy..." 
                                 className="bg-transparent border-zinc-800 text-white placeholder:text-zinc-600 h-10 pl-10 rounded-md focus-visible:ring-1 focus-visible:ring-white/20 focus-visible:border-white/20 transition-all w-full"
                                 value={manualRepoUrl}
                                 onChange={(e) => setManualRepoUrl(e.target.value)}
                             />
                         </div>
-                        <Button
+                        <Button 
                             onClick={handleManualImport}
                             disabled={manualImportLoading || !manualRepoUrl.trim()}
                             className="bg-white text-black hover:bg-zinc-200 h-10 px-6 font-medium rounded-md transition-colors shrink-0"
@@ -449,13 +422,13 @@ export function Hero() {
                             {manualImportLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Import"}
                         </Button>
                     </div>
-
+                
                     <div className="h-px w-full bg-zinc-800" />
 
                     <div className="flex flex-col gap-5">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-white tracking-tight">Your Repositories</h2>
-
+                            
                             {/* Account Badge */}
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-zinc-800 bg-zinc-900/50 cursor-default">
                                 {userAvatar ? (
@@ -474,13 +447,13 @@ export function Hero() {
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
                                 <Search className="h-4 w-4" />
                             </div>
-                            <Input
-                                placeholder="Search repositories..."
+                            <Input 
+                                placeholder="Search repositories..." 
                                 className="pl-10 bg-transparent border-zinc-800 text-white placeholder:text-zinc-600 h-10 rounded-md focus-visible:ring-1 focus-visible:ring-white/20 focus-visible:border-white/20 transition-all font-medium"
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
-                                    setCurrentPage(1);
+                                    setCurrentPage(1); 
                                 }}
                             />
                         </div>
@@ -499,7 +472,7 @@ export function Hero() {
                         ) : (
                             <>
                                 {repos.map((repo) => (
-                                    <div
+                                    <div 
                                         key={repo.id}
                                         onClick={() => handleRepoClick(repo, false)}
                                         className={`group relative flex items-center justify-between p-4 bg-black hover:bg-zinc-900 transition-colors cursor-pointer border-b border-zinc-800 last:border-0 ${importingRepoId === repo.id ? 'opacity-70' : ''}`}
@@ -524,9 +497,9 @@ export function Hero() {
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <Button
-                                            size="sm"
+                                        
+                                        <Button 
+                                            size="sm" 
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleRepoClick(repo, true);
@@ -543,7 +516,7 @@ export function Hero() {
                                 ))}
                             </>
                         )}
-
+                        
                         {!loading && repos.length === 0 && (
                             <div className="text-center py-20 flex flex-col items-center gap-4">
                                 <div className="p-4 rounded-full bg-zinc-900/50 border border-zinc-800">
@@ -556,7 +529,7 @@ export function Hero() {
                             </div>
                         )}
                     </div>
-
+                    
                     {/* Pagination */}
                     <div className="flex justify-between items-center pt-2">
                         <span className="text-xs text-zinc-500 font-medium">Page {currentPage}</span>
@@ -599,9 +572,9 @@ export function Hero() {
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-bold text-white leading-tight tracking-tight">{previewData.name}</h2>
-                                        <a
-                                            href={previewData.html_url}
-                                            target="_blank"
+                                        <a 
+                                            href={previewData.html_url} 
+                                            target="_blank" 
                                             rel="noopener noreferrer"
                                             className="text-sm text-zinc-500 hover:text-white flex items-center gap-1.5 transition-colors mt-1"
                                         >
@@ -615,7 +588,7 @@ export function Hero() {
                                 </span>
                              </div>
 
-                             <Button
+                             <Button 
                                 onClick={() => setShowConfig(true)}
                                 className="w-full bg-white text-black hover:bg-zinc-200 h-10 text-sm font-semibold rounded-md transition-colors"
                              >
@@ -643,7 +616,7 @@ export function Hero() {
                             <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
                                 Recent Activity
                             </h3>
-
+                            
                             <div className="space-y-3">
                                 {previewData.commits && previewData.commits.length > 0 ? (
                                     previewData.commits.slice(0, 5).map((commit, i) => (
@@ -671,7 +644,7 @@ export function Hero() {
                                         const total = Object.values(previewData.languages).reduce((a, b) => a + b, 0);
                                         const colors = ['bg-zinc-100', 'bg-zinc-300', 'bg-zinc-500', 'bg-zinc-700'];
                                         return Object.entries(previewData.languages).map(([lang, count], i) => (
-                                            <div
+                                            <div 
                                                 key={lang}
                                                 className={`h-full ${colors[i % colors.length]}`}
                                                 style={{ width: `${(count / total) * 100}%` }}
@@ -695,7 +668,7 @@ export function Hero() {
                          <div className="p-6 rounded-full bg-zinc-900 border border-zinc-800">
                              <Command className="h-8 w-8 text-zinc-600" />
                          </div>
-
+                         
                          <div className="max-w-[240px] space-y-1">
                             <h3 className="text-white text-sm font-medium">No Repository Selected</h3>
                             <p className="text-xs text-zinc-500">
