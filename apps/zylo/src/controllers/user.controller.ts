@@ -10,6 +10,7 @@ import {
   detectFrontendFramework,
 } from '../services/github.service.js';
 import { ERROR_CODES } from '@zylo/errors';
+import { AsyncHandler } from '../utils/asyncHandler.js';
 
 export const userProfile = async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
   const { id } = req.user as { id: string };
@@ -180,18 +181,28 @@ export const repoPreviewController = async (req: AuthenticateUserRequest, res: R
     html_url: repoRes.data.html_url,
     language: repoRes.data.language,
     languages: langRes.data,
+    branch: repoRes.data.default_branch,
   });
 };
-export const externalUrlController = async (req: Request, res: Response) => {
-  const { githubUrl } = req.body;
-  console.log(githubUrl);
-  res.json({
-    status: true,
-  });
-};
+export const externalUrlController = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { githubUrl } = req.body;
+
+    if (!githubUrl) {
+      res.status(400).json({ error: ERROR_CODES.MISSING_REPO_DATA });
+      return;
+    }
+
+    console.log(githubUrl);
+
+    res.json({ status: true });
+  },
+);
 export const importRepoController = async (req: AuthenticateUserRequest, res: Response) => {
   const { owner, repoName } = req.body;
   const { id: userId } = req.user as { id: string };
+  const random = Math.random().toString(36).substring(2, 8);
+  const projectname = `${repoName}-${random}`;
 
   if (!owner || !repoName) {
     res.status(400).json({ error: ERROR_CODES.MISSING_REPO_DATA });
@@ -218,6 +229,7 @@ export const importRepoController = async (req: AuthenticateUserRequest, res: Re
   console.log(dirs);
   res.json({
     status: true,
+    projectname,
     directories: dirs,
   });
 };
@@ -256,66 +268,86 @@ export const frameworkDetectController = async (req: AuthenticateUserRequest, re
 export const deployProjectController = async (req: DeployData, res: Response) => {
   const { id: userId } = req.user as { id: string };
   const data = req.body as DeployData;
-  const { owner, repoName, rootDirectory, framework } = data.deploy;
-  const { rows } = await pool.query(
+
+  const { owner, repoName, rootDirectory, framework, projectname } = data.deploy;
+
+  const projectRes = await pool.query(
     `
-    SELECT id FROM projects
-    WHERE user_id = $1 AND repo_owner = $2 AND repo_name = $3
+    SELECT id, projectname
+    FROM projects
+    WHERE user_id = $1::uuid
+      AND projectname = $2
     `,
-    [userId, owner, repoName],
+    [userId, projectname],
   );
 
-  let projectId = rows[0]?.id;
+  let projectId: string;
+  let projectName: string;
 
-  if (!projectId) {
-    const result = await pool.query(
+  // 2. Create project if not exists
+  if (projectRes.rowCount === 0) {
+    const insertRes = await pool.query(
       `
       INSERT INTO projects
-      (user_id, repo_owner, repo_name, root_dir, framework)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id
+        (user_id, repo_owner, repo_name, root_dir, framework, projectname)
+      VALUES ($1::uuid, $2, $3, $4, $5, $6)
+      RETURNING id, projectname
       `,
-      [userId, owner, repoName, rootDirectory, framework],
+      [userId, owner, repoName, rootDirectory, framework, projectname],
     );
-    projectId = result.rows[0].id;
+
+    projectId = insertRes.rows[0].id;
+    projectName = insertRes.rows[0].projectname;
   } else {
+    projectId = projectRes.rows[0].id;
+    projectName = projectRes.rows[0].projectname;
+
     await pool.query(
       `
       UPDATE projects
-      SET root_dir = $1, framework = $2
-      WHERE id = $3
+      SET root_dir = $1,
+          framework = $2
+      WHERE id = $3::uuid
       `,
       [rootDirectory, framework, projectId],
     );
   }
+
   const deploymentRes = await pool.query(
     `
-  INSERT INTO deployments
-  (
-    project_id,
-    status,
-    install_command,
-    build_command,
-    output_dir,
-    envs
-  )
-  VALUES ($1, 'QUEUED', $2, $3, $4, $5)
-  RETURNING id
-  `,
+    INSERT INTO deployments
+      (
+        project_id,
+        status,
+        install_command,
+        build_command,
+        output_dir,
+        envs,
+        user_id
+      )
+    VALUES
+      ($1::uuid, 'QUEUED', $2, $3, $4, $5, $6::uuid)
+    RETURNING id
+    `,
     [
       projectId,
       data.deploy.installCommand,
       data.deploy.buildCommand,
       data.deploy.outputDir,
       data.deploy.envs,
+      userId,
     ],
   );
 
   const deploymentId = deploymentRes.rows[0].id;
-  await enqueueEvent(deploymentId);
-  console.log(projectId);
 
-  res.json({ status: true, deploymentId });
+  await enqueueEvent(deploymentId);
+
+  res.json({
+    status: true,
+    deploymentId,
+    projectname: projectName,
+  });
 };
 export const repoInnerDirectoriesController = async (
   req: AuthenticateUserRequest,
@@ -382,7 +414,46 @@ LIMIT 1;
   const deployment = rows[0];
   console.log(deployment);
   res.json({
-    status : true ,
-    deployment
-  })
+    status: true,
+    deployment,
+  });
 };
+export const projectDashboard = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id } = req.user as { id: string };
+    const { rows } = await pool.query(
+      `
+ SELECT
+  u.id              AS user_id,
+  u.email,
+  u.avatar_url,
+  gp.name           AS github_name,
+
+  p.id              AS project_id,
+  p.projectname,
+  p.repo_name,
+  p.repo_owner,
+
+  d.id              AS deployment_id,
+  d.status,
+  d.created_at      AS deployment_created_at
+FROM users u
+LEFT JOIN github_profiles gp
+  ON gp.user_id = u.id
+LEFT JOIN projects p
+  ON p.user_id = u.id
+LEFT JOIN deployments d
+  ON d.project_id = p.id
+WHERE u.id = $1::uuid
+ORDER BY d.created_at DESC;
+  `,
+      [id],
+    );
+    const dashboardData = rows;
+    console.log(dashboardData);
+    res.json({
+      status: true,
+      dashboardData,
+    });
+  },
+);

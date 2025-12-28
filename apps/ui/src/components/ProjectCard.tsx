@@ -1,66 +1,83 @@
-import { GitBranch, MoreHorizontal, Globe, Clock, ArrowUpRight } from "lucide-react";
-import { Button } from "./ui/Button";
+import { GitBranch, MoreHorizontal, ArrowUpRight, Github } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 interface ProjectCardProps {
   name: string;
   domain: string;
   repo: string;
-  lastCommit: string;
+  lastCommitMessage: string;
   timeAgo: string;
-  status?: "ready" | "error" | "building";
+  branch?: string;
 }
 
-export function ProjectCard({ name, domain, repo, lastCommit, timeAgo, status: _status = "ready" }: ProjectCardProps) {
-  // Determine status color
-  const statusColor = _status === "ready" ? "bg-emerald-500" : _status === "error" ? "bg-red-500" : "bg-amber-500";
-  const statusGlow = _status === "ready" ? "shadow-[0_0_10px_rgba(16,185,129,0.4)]" : _status === "error" ? "shadow-[0_0_10px_rgba(239,68,68,0.4)]" : "shadow-[0_0_10px_rgba(245,158,11,0.4)]";
-
+export function ProjectCard({
+  name,
+  domain,
+  repo,
+  lastCommitMessage,
+  timeAgo,
+  branch = 'main',
+}: ProjectCardProps) {
   return (
-    <div className="group relative flex flex-col justify-between rounded-xl border border-white/5 bg-zinc-900/40 backdrop-blur-md p-5 hover:border-white/10 hover:bg-zinc-900/60 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1">
-      {/* Decorative gradient blob */}
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-[50px] pointer-events-none group-hover:bg-primary/20 transition-colors duration-500" />
+    <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-zinc-950 hover:border-white/20 transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+      {/* Hover Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-      <div className="flex items-start justify-between relative z-10">
-        <div className="flex items-center gap-4">
-            <div className={`relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 shadow-inner overflow-hidden`}>
-                 <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                 <span className="text-xl font-bold text-white bg-clip-text text-transparent bg-gradient-to-br from-white to-zinc-400 group-hover:from-primary-foreground group-hover:to-primary-foreground/80 uppercase">{name.charAt(0)}</span>
+      <div className="relative p-5 flex flex-col h-full justify-between">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-white shrink-0">
+              <Logo className="h-5 w-5" />
             </div>
             <div>
-                <h3 className="text-base font-semibold text-white tracking-tight group-hover:text-primary transition-colors">{name}</h3>
-                <a href={`https://${domain}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors mt-0.5 group/link">
-                    <Globe className="h-3 w-3" />
-                    <span>{domain}</span>
-                    <ArrowUpRight className="h-3 w-3 opacity-0 -translate-y-0.5 translate-x-0.5 group-hover/link:opacity-100 transition-all" />
-                </a>
+              <h3 className="text-base font-bold text-white tracking-tight leading-none mb-1">
+                {name}
+              </h3>
+              <a
+                href={`https://${domain}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-zinc-500 hover:text-white transition-colors font-medium flex items-center gap-1"
+              >
+                {domain}
+              </a>
             </div>
+          </div>
+
+          <a
+            href={`https://${domain}`}
+            target="_blank"
+            rel="noreferrer"
+            className="h-8 w-8 flex items-center justify-center rounded-full bg-transparent hover:bg-white/10 text-zinc-500 hover:text-white transition-colors"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+          </a>
         </div>
-        <div className="flex gap-1">
-             <div className="flex flex-col items-end gap-1 mr-2">
-                 <div className={`h-2.5 w-2.5 rounded-full ${statusColor} ${statusGlow} ring-2 ring-black/50`} />
-             </div>
-            <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-500 hover:text-white hover:bg-white/5 rounded-full transition-colors">
-                 <MoreHorizontal className="h-4 w-4" />
-            </Button>
-        </div>
-      </div>
-      
-      <div className="mt-8 space-y-4 relative z-10">
-        <div className="flex items-center gap-2 text-xs text-zinc-500 bg-white/5 w-fit px-3 py-1.5 rounded-full border border-white/5 hover:border-white/10 transition-colors">
-            <img src="https://github.com/favicon.ico" alt="GitHub" className="h-3.5 w-3.5 opacity-70 grayscale group-hover:grayscale-0 transition-all" />
-            <span className="text-zinc-300 font-medium truncate max-w-[140px] tracking-wide">{repo}</span>
-        </div>
-        
-        <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-zinc-400">
-             <div className="flex items-center gap-2">
-                 <GitBranch className="h-3.5 w-3.5 text-zinc-500" />
-                 <span className="font-mono text-zinc-300 bg-white/5 px-1.5 py-0.5 rounded text-[10px]">main</span>
-                 <span className="truncate max-w-[120px]">{lastCommit}</span>
-             </div>
-             <div className="flex items-center gap-1.5 min-w-fit">
-                 <Clock className="h-3.5 w-3.5 text-zinc-500" />
-                 <span>{timeAgo}</span>
-             </div>
+
+        {/* Status / Commit */}
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/5 self-start">
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+            <span className="text-[10px] font-medium text-zinc-300 uppercase tracking-wide">
+              {lastCommitMessage.replace('Deployment ', '')}
+            </span>
+          </div>
+
+          <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
+              <Github className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium">{repo}</span>
+            </div>
+
+            <div className="flex items-center gap-3 text-xs text-zinc-600">
+              <div className="flex items-center gap-1">
+                <GitBranch className="h-3 w-3" />
+                <span className="font-mono">{branch}</span>
+              </div>
+              <span>{timeAgo}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,61 +1,47 @@
-import { Button } from "./ui/Button";
-
 export function UsageStats() {
   return (
-    <div className="space-y-6">
-       <div className="flex items-center justify-between">
-           <h3 className="text-sm font-medium text-zinc-200">Usage</h3>
-           <span className="text-sm text-zinc-500">Last 30 days</span>
-       </div>
-       
-       <div className="space-y-4">
-            {/* Stat Row */}
-            <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400">Edge Requests</span>
-                    <span className="text-zinc-200">33 / 1M</span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-zinc-900 overflow-hidden">
-                    <div className="h-full w-[0.01%] bg-blue-500 rounded-full" />
-                </div>
-            </div>
+    <div className="rounded-xl border border-white/10 bg-zinc-950/50 p-6 backdrop-blur-sm">
+      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-6">
+        Current Usage
+      </h3>
 
-            <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400">Fast Data Transfer</span>
-                    <span className="text-zinc-200">1.37 MB / 100 GB</span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-zinc-900 overflow-hidden">
-                    <div className="h-full w-[0.1%] bg-purple-500 rounded-full" />
-                </div>
-            </div>
+      <div className="space-y-6">
+        {/* Stat 1 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-white font-medium">Edge Requests</span>
+            <span className="text-zinc-500">24%</span>
+          </div>
+          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full w-[24%] bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+          </div>
+          <p className="text-[10px] text-zinc-600 font-mono">24,000 / 100,000</p>
+        </div>
 
-            <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400">Fast Origin Transfer</span>
-                    <span className="text-zinc-200">0 / 10 GB</span>
-                </div>
-                 <div className="h-1.5 w-full rounded-full bg-zinc-900 overflow-hidden">
-                    <div className="h-full w-0 bg-white rounded-full" />
-                </div>
-            </div>
-            
-             <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400">Function Invocations</span>
-                    <span className="text-zinc-200">0 / 1M</span>
-                </div>
-                 <div className="h-1.5 w-full rounded-full bg-zinc-900 overflow-hidden">
-                    <div className="h-full w-0 bg-white rounded-full" />
-                </div>
-            </div>
-       </div>
-       
-       <div className="pt-2">
-           <Button variant="outline" size="sm" className="w-full text-xs h-8 border-white/10 bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10">
-               Upgrade to Pro
-           </Button>
-       </div>
+        {/* Stat 2 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-white font-medium">Bandwidth</span>
+            <span className="text-zinc-500">12%</span>
+          </div>
+          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full w-[12%] bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+          </div>
+          <p className="text-[10px] text-zinc-600 font-mono">12 GB / 100 GB</p>
+        </div>
+
+        {/* Stat 3 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-white font-medium">Build Minutes</span>
+            <span className="text-zinc-500">5%</span>
+          </div>
+          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full w-[5%] bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+          </div>
+          <p className="text-[10px] text-zinc-600 font-mono">300 / 6,000</p>
+        </div>
+      </div>
     </div>
   );
 }

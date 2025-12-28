@@ -1,4 +1,4 @@
-import type { Request } from "express";
+import type { Request } from 'express';
 
 export interface AuthenticateUserRequest extends Request {
   user?: {
@@ -11,7 +11,7 @@ export interface DirNode {
   name: string;
   path: string;
   children?: DirNode[];
-  type?: "file" | "dir";
+  type?: 'file' | 'dir';
 }
 
 export interface DeployData extends AuthenticateUserRequest {
@@ -24,14 +24,14 @@ export interface DeployData extends AuthenticateUserRequest {
     outputDir: string;
     installCommand: string;
     envs: string;
-    projectName: string;
+    projectname: string;
   };
 }
 
 export interface User {
   email: string | null;
   avatar_url: string | null;
-  status: "active" | "suspended" | "deleted";
+  status: 'active' | 'suspended' | 'deleted';
   updated_at: Number;
 }
 
