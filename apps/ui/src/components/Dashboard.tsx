@@ -98,13 +98,7 @@ export function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-white/20">
-      {/* Background Ambience */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-white/5 blur-[100px] rounded-full mix-blend-screen opacity-50" />
-      </div>
-
+    <div className="min-h-screen bg-[#191919] text-[#D4D4D4] font-sans">
       <Header
         onLogout={() => {
           localStorage.removeItem('authToken');
@@ -119,16 +113,16 @@ export function Dashboard() {
         {/* Overview & Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Overview</h1>
-            <p className="text-sm text-zinc-500">Manage your projects and deployments.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-[#FFFFFF] mb-1">Overview</h1>
+            <p className="text-sm text-[#9B9A97]">Manage your projects and deployments.</p>
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
             <div className="relative flex-1 md:w-64 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-600 group-focus-within:text-white transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9B9A97] group-focus-within:text-[#D4D4D4] transition-colors" />
               <Input
                 placeholder="Filter projects..."
-                className="pl-10 bg-white/5 border-white/5 text-white placeholder:text-zinc-600 h-10 w-full focus:bg-white/10 focus:border-white/10 rounded-lg transition-all font-medium text-sm"
+                className="pl-10 bg-[#2F2F2F] border-[#3F3F3F] text-[#D4D4D4] placeholder:text-[#9B9A97] h-10 w-full focus:bg-[#3F3F3F] focus:border-[#4F4F4F] rounded-lg transition-all font-medium text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -141,19 +135,19 @@ export function Dashboard() {
           <div className="lg:col-span-3 space-y-8">
             {/* User Profile Card */}
             {deploymentData[0] && (
-              <div className="rounded-xl border border-white/10 bg-zinc-950/50 p-5 flex items-center gap-4 backdrop-blur-sm">
+              <div className="rounded-xl border border-[#2F2F2F] bg-[#191919] p-5 flex items-center gap-4">
                 <img
                   src={deploymentData[0].avatar_url}
                   alt={deploymentData[0].github_name}
-                  className="h-12 w-12 rounded-full border border-white/10 object-cover"
+                  className="h-12 w-12 rounded-full border border-[#2F2F2F] object-cover"
                 />
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-bold text-white truncate">
+                  <h3 className="text-sm font-bold text-[#D4D4D4] truncate">
                     {deploymentData[0].github_name}
                   </h3>
-                  <p className="text-xs text-zinc-500 truncate">{deploymentData[0].email}</p>
+                  <p className="text-xs text-[#9B9A97] truncate">{deploymentData[0].email}</p>
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-white/10 text-zinc-300 border border-white/5">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#2F2F2F] text-[#9B9A97] border border-[#3F3F3F]">
                       Pro Plan
                     </span>
                   </div>
@@ -164,15 +158,14 @@ export function Dashboard() {
             <UsageStats />
 
             {/* Upgrade Card */}
-            <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-zinc-950/50 p-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <h3 className="relative text-sm font-semibold text-white mb-2">Pro Plan</h3>
-              <p className="relative text-xs text-zinc-500 mb-4 leading-relaxed">
+            <div className="group relative overflow-hidden rounded-xl border border-[#2F2F2F] bg-[#191919] p-6 hover:bg-[#2F2F2F]/50 transition-colors">
+              <h3 className="relative text-sm font-semibold text-[#D4D4D4] mb-2">Pro Plan</h3>
+              <p className="relative text-xs text-[#9B9A97] mb-4 leading-relaxed">
                 Unlock higher limits and advanced analytics for your growing projects.
               </p>
               <Button
                 variant="link"
-                className="relative p-0 h-auto text-xs text-white hover:text-zinc-300 font-medium flex items-center gap-1"
+                className="relative p-0 h-auto text-xs text-[#D4D4D4] hover:text-white font-medium flex items-center gap-1"
               >
                 Upgrade Now <ArrowUpRight className="h-3 w-3" />
               </Button>
@@ -182,13 +175,13 @@ export function Dashboard() {
           {/* Main Grid */}
           <div className="lg:col-span-9">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-sm font-medium text-zinc-400">Active Deployments</h2>
-              <span className="text-xs text-zinc-600">{filteredProjects.length} Projects</span>
+              <h2 className="text-sm font-medium text-[#9B9A97]">Active Deployments</h2>
+              <span className="text-xs text-[#9B9A97]">{filteredProjects.length} Projects</span>
             </div>
 
             {loading ? (
               <div className="flex flex-col items-center justify-center py-32">
-                <Loader2 className="h-8 w-8 text-white/20 animate-spin" />
+                <Loader2 className="h-8 w-8 text-[#2F2F2F] animate-spin" />
               </div>
             ) : filteredProjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -197,9 +190,13 @@ export function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-32 border border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
-                <p className="text-zinc-500 text-sm mb-2">No projects found</p>
-                <Button variant="link" className="text-zinc-300" onClick={() => setSearchQuery('')}>
+              <div className="flex flex-col items-center justify-center py-32 border border-dashed border-[#2F2F2F] rounded-2xl bg-[#191919]">
+                <p className="text-[#9B9A97] text-sm mb-2">No projects found</p>
+                <Button
+                  variant="link"
+                  className="text-[#D4D4D4]"
+                  onClick={() => setSearchQuery('')}
+                >
                   Clear filter
                 </Button>
               </div>

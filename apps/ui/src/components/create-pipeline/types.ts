@@ -70,6 +70,7 @@ export interface PipelineData {
   intervalMinutes?: number;
   startDate?: string;
   endDate?: string;
+  color: string;
 }
 
 export const INITIAL_DATA: PipelineData = {
@@ -89,6 +90,7 @@ export const INITIAL_DATA: PipelineData = {
   thumbnailMode: 'auto',
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   scheduleFrequency: 'cron',
+  color: 'linear-gradient(to right, #4f46e5, #9333ea)', // Default gradient
 };
 
 export type WizardStep =

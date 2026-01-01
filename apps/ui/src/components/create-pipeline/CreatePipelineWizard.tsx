@@ -11,7 +11,8 @@ import { Step6Scheduling } from './steps/Step6Scheduling';
 import { Step7Review } from './steps/Step7Review';
 
 export function CreatePipelineWizard() {
-  const { isOpen, setIsOpen, currentStep, goNext, goBack, isStepValid, data } = usePipelineWizard();
+  const { isOpen, setIsOpen, currentStep, goNext, goBack, isStepValid, data, isSubmissionSuccess } =
+    usePipelineWizard();
 
   if (!isOpen) return null;
 
@@ -75,11 +76,11 @@ export function CreatePipelineWizard() {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-2xl z-[100] flex flex-col max-h-[90vh]"
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl bg-[#191919] border border-[#2F2F2F] rounded-2xl shadow-2xl z-[100] flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between bg-[#0A0A0A] rounded-t-2xl">
+        <div className="px-8 py-6 border-b border-[#2F2F2F] flex items-center justify-between bg-[#191919] rounded-t-2xl">
           <div>
             <h2 className="text-xl font-semibold text-white">Create New Pipeline</h2>
             <div className="flex items-center gap-2 mt-2 text-sm text-zinc-500">
@@ -94,7 +95,7 @@ export function CreatePipelineWizard() {
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-zinc-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full"
+            className="text-zinc-500 hover:text-white transition-colors p-2 hover:bg-[#2F2F2F] rounded-full"
           >
             <X className="w-5 h-5" />
           </button>
@@ -105,7 +106,7 @@ export function CreatePipelineWizard() {
 
         {/* Footer */}
         {currentStep !== 'review' && (
-          <div className="px-8 py-6 border-t border-white/10 flex items-center justify-between bg-[#0A0A0A] rounded-b-2xl">
+          <div className="px-8 py-6 border-t border-[#2F2F2F] flex items-center justify-between bg-[#191919] rounded-b-2xl">
             <Button
               variant="ghost"
               onClick={goBack}
@@ -130,8 +131,8 @@ export function CreatePipelineWizard() {
         )}
 
         {/* Review step has its own footer/button rendered inside the component for direct state control */}
-        {currentStep === 'review' && (
-          <div className="px-8 py-6 border-t border-white/10 flex items-center justify-between bg-[#0A0A0A] rounded-b-2xl">
+        {currentStep === 'review' && !isSubmissionSuccess && (
+          <div className="px-8 py-6 border-t border-[#2F2F2F] flex items-center justify-between bg-[#191919] rounded-b-2xl">
             <Button
               variant="ghost"
               onClick={goBack}

@@ -13,7 +13,8 @@ import {
   projectDashboard,
   userProfileYT,
   createNewPipeline,
-  dashboardYTPipeline,
+  userPipelines,
+  getPipelineById,
 } from '../controllers/zylo.controller.js';
 
 const router = express.Router();
@@ -30,6 +31,6 @@ router.post('/deploy-dashboard', authMiddleware, deployDashboard);
 router.get('/dashboard', authMiddleware, projectDashboard);
 router.get('/yt-pipeline/me', authMiddleware, userProfileYT);
 router.post('/create/pipeline', authMiddleware, createNewPipeline);
-router.get('/dashboard/pipeline', authMiddleware, dashboardYTPipeline);
-
+router.get('/pipelines', authMiddleware, userPipelines);
+router.post('/pipelines/:name', authMiddleware, getPipelineById);
 export default router;

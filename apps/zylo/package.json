@@ -13,17 +13,20 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.937.0",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@types/express": "^5.0.6",
+    "@zylo/errors": "workspace:*",
+    "@zylo/types": "workspace:*",
     "axios": "^1.13.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.2.1",
+    "multer": "^2.0.2",
     "pg": "^8.16.3",
     "typescript": "^5.9.3",
-    "@zylo/types": "workspace:*",
-    "@zylo/errors": "workspace:*"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@aws-sdk/client-sqs": "^3.958.0",
@@ -31,6 +34,7 @@
     "@types/cors": "^2.8.19",
     "@types/dotenv": "^6.1.1",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^25.0.3",
     "@types/pg": "^8.16.0",
     "dotenv": "^17.2.3",

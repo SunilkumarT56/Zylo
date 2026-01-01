@@ -4,7 +4,8 @@ import { Check, AlertTriangle, MonitorPlay, Smartphone, Clock, Play } from 'luci
 import { Button } from '@/components/ui/Button';
 
 export function Step7Review() {
-  const { data, setStepValid, setIsOpen, reset, userChannel } = usePipelineWizard();
+  const { data, setStepValid, setIsOpen, reset, userChannel, setIsSubmissionSuccess } =
+    usePipelineWizard();
   const [confirmed, setConfirmed] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -59,7 +60,7 @@ export function Step7Review() {
 
       const payload = {
         pipelineName: data.pipelineName,
-        color: '#3B82F6',
+        color: data.color || '#3B82F6',
         pipelineType: data.pipelineType,
         executionMode: data.executionMode,
         sourceType: data.sourceType,
@@ -97,18 +98,19 @@ export function Step7Review() {
       );
 
       if (!response.ok) {
-        // If backend rejects extra fields, we might need to fallback to minimal payload
-        // For now, throw.
+        const errText = await response.text();
+        if (errText.includes('PIPELINE_ALREADY_EXISTS')) {
+          throw new Error('Pipeline name already exists');
+        }
         throw new Error('Failed to create pipeline');
       }
 
       // Success
       setIsSuccess(true);
-    } catch (err) {
+      setIsSubmissionSuccess(true);
+    } catch (err: any) {
       console.error('Creation failed', err);
-      // For demo purposes, if it fails (likely due to payload mismatch), we might simulate success
-      // But per requirements "Handle server errors explicitly", we show error.
-      setError('Failed to create pipeline. Backend rejection or network error.');
+      setError(err.message || 'Failed to create pipeline. Backend rejection or network error.');
     } finally {
       setIsCreating(false);
     }

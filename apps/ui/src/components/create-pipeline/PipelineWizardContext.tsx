@@ -18,6 +18,8 @@ interface PipelineWizardContextType {
   setIsOpen: (open: boolean) => void;
   userChannel: ChannelData | null;
   setUserChannel: (channel: ChannelData | null) => void;
+  isSubmissionSuccess: boolean;
+  setIsSubmissionSuccess: (success: boolean) => void;
 }
 
 const PipelineWizardContext = createContext<PipelineWizardContextType | undefined>(undefined);
@@ -40,6 +42,7 @@ export function PipelineWizardProvider({ children }: { children: React.ReactNode
 
   const [isStepValid, setStepValid] = useState(false);
   const [userChannel, setUserChannel] = useState<ChannelData | null>(null);
+  const [isSubmissionSuccess, setIsSubmissionSuccess] = useState(false);
 
   const setData = useCallback((updates: Partial<PipelineData>) => {
     setPipelineData((prev) => ({ ...prev, ...updates }));
@@ -53,6 +56,7 @@ export function PipelineWizardProvider({ children }: { children: React.ReactNode
     setCurrentStep('identity');
     setValidationErrors({});
     setStepValid(false);
+    setIsSubmissionSuccess(false);
   }, []);
 
   // Listen for global open event
@@ -120,6 +124,8 @@ export function PipelineWizardProvider({ children }: { children: React.ReactNode
         setIsOpen,
         userChannel,
         setUserChannel,
+        isSubmissionSuccess,
+        setIsSubmissionSuccess,
       }}
     >
       {children}

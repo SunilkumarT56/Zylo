@@ -12,6 +12,7 @@ import { Footer } from '@/components/Footer';
 import { DeploymentProgress } from '@/components/DeploymentProgress';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { YtPipelineDashboard } from '@/components/YtPipelineDashboard';
+import { PipelineDetailsPage } from '@/components/PipelineDetailsPage';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
 interface UserData {
@@ -171,7 +172,13 @@ function App() {
   };
 
   // Define paths where footer should not be visible
-  const hideFooterPaths = ['/login', '/signup', '/signup/connect', '/verify'];
+  const hideFooterPaths = [
+    '/login',
+    '/signup',
+    '/signup/connect',
+    '/verify',
+    '/yt-pipeline-dashboard',
+  ];
   const shouldShowFooter = !hideFooterPaths.includes(location.pathname);
 
   if (isAuthChecking) {
@@ -274,6 +281,10 @@ function App() {
           <Route
             path="/yt-pipeline-dashboard"
             element={isAuthenticated ? <YtPipelineDashboard /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/pipeline/:name"
+            element={isAuthenticated ? <PipelineDetailsPage /> : <Navigate to="/login" replace />}
           />
         </Routes>
         {shouldShowFooter && <Footer />}

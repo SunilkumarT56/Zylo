@@ -109,6 +109,32 @@ export function Step1Identity() {
           {localName.length}/{MAX_LENGTH}
         </p>
       </div>
+
+      <div className="space-y-3">
+        <label className="text-sm font-medium text-zinc-300">Pipeline Color</label>
+        <div className="grid grid-cols-6 gap-2">
+          {[
+            'linear-gradient(to right, #4f46e5, #9333ea)', // Indigo to Purple
+            'linear-gradient(to right, #ec4899, #8b5cf6)', // Pink to Violet
+            'linear-gradient(to right, #3b82f6, #06b6d4)', // Blue to Cyan
+            'linear-gradient(to right, #10b981, #3b82f6)', // Emerald to Blue
+            'linear-gradient(to right, #f59e0b, #ef4444)', // Amber to Red
+            'linear-gradient(to right, #84cc16, #10b981)', // Lime to Emerald
+          ].map((color, idx) => (
+            <button
+              key={idx}
+              onClick={() => setData({ ...data, color })}
+              className={`w-full h-10 rounded-md transition-all ${
+                data.color === color
+                  ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-105'
+                  : 'hover:opacity-80'
+              }`}
+              style={{ background: color }}
+              aria-label={`Select pipeline color ${idx + 1}`}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

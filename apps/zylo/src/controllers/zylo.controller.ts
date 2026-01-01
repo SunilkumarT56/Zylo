@@ -597,6 +597,20 @@ export const createNewPipeline = AsyncHandler(
       [adminId],
     );
     const oauthId = rows[0]?.oauthId;
+    const response = await pool.query(
+      `
+      SELECT name FROM pipelines WHERE owner_user_id = $1
+      `,
+      [adminId],
+    );
+    const pipelineName = response.rows.find((row: any) => row.name === name);
+    if (pipelineName) {
+      res.status(400).json({
+        status: false,
+        message: ERROR_CODES.PIPELINE_ALREADY_EXISTS,
+      });
+      return;
+    }
     const ContentSourceConfig: ContentSourceConfig = {
       type: sourceType,
       config: sourceConfig,
@@ -630,7 +644,7 @@ export const createNewPipeline = AsyncHandler(
     await pool.query(
       `
       INSERT INTO pipelines (name , owner_user_id , pipeline_type , execution_mode ,content_source , youtube_config , metadata_strategy , thumbnail_config ,schedule_config,color)
-      VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10)`,
+      VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10 )`,
       [
         name,
         adminId,
@@ -650,10 +664,128 @@ export const createNewPipeline = AsyncHandler(
     });
   },
 );
-export const dashboardYTPipeline = AsyncHandler(
+export const userPipelines = AsyncHandler(
   async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id: userId } = req.user as { id: string };
+    const { rows } = await pool.query(
+      `
+      SELECT * FROM pipelines WHERE owner_user_id = $1
+      `,
+      [userId],
+    );
+    const pipelines = rows;
+    console.log(pipelines);
     res.json({
       status: true,
+      pipelines,
     });
+    return new Promise(() => {});
+  },
+);
+export const getPipelineById = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id: userId } = req.user as { id: string };
+    const { name } = req.params as { name: string };
+    const { rows} = await pool.query(
+      `
+    SELECT id,
+  name,
+  owner_user_id,
+  pipeline_type,
+  execution_mode,
+  content_source,
+  youtube_config,
+  metadata_strategy,
+  thumbnail_config,
+  schedule_config,
+  approval_flow,
+  admin_settings,
+  status,
+  color,
+  created_at,
+  updated_at FROM pipelines WHERE name = $1 AND owner_user_id = $2
+    `,
+      [name, userId],
+    );
+    const row = rows[0];
+    const orderedPipelineResponse = {
+      header: {
+        id: row.id,
+        name: row.name,
+        status: row.status,
+        pipelineType: row.pipeline_type,
+        executionMode: row.execution_mode,
+        color: row.color,
+      },
+
+      readiness: {
+        sourceConfigured: !!row.content_source,
+        youtubeConnected: !!row.youtube_config?.oauthConnectionId,
+        scheduleConfigured: !!row.schedule_config,
+        adminLimitsApplied: !!row.admin_settings,
+        verified: row.status === 'VERIFIED',
+      },
+
+      configuration: {
+        contentSource: row.content_source.type,
+        approvalFlow: row.approval_flow.enabled,
+
+        youtube: {
+          channelId: row.youtube_config.channelId,
+          category: row.youtube_config.categoryId,
+          privacy: row.youtube_config.defaultPrivacy,
+          madeForKids: row.youtube_config.madeForKids,
+        },
+
+        metadata: {
+          language: row.metadata_strategy.language,
+          region: row.metadata_strategy.region,
+          titleTemplate: row.metadata_strategy.titleTemplate,
+          descriptionTemplate: row.metadata_strategy.descriptionTemplate,
+          tagsTemplate: row.metadata_strategy.tagsTemplate,
+        },
+
+        thumbnail: {
+          mode: row.thumbnail_config.mode,
+        },
+
+        schedule: {
+          frequency: row.schedule_config.frequency,
+          timezone: row.schedule_config.timezone,
+        },
+      },
+
+      adminLimits: {
+        execution: {
+          maxConcurrentRuns: row.admin_settings.maxConcurrentRuns,
+          retryCount: row.admin_settings.retryCount,
+          timeoutPerStepSeconds: row.admin_settings.timeoutPerStepSeconds,
+        },
+        resources: {
+          cpu: row.admin_settings.cpuLimit,
+          memoryMB: row.admin_settings.memoryLimitMB,
+          storageMB: row.admin_settings.storageQuotaMB,
+          dailyUploads: row.admin_settings.dailyUploadQuota,
+        },
+        safety: {
+          onFailureAction: row.admin_settings.onFailureAction,
+          autoDisableAfterFailures: row.admin_settings.autoDisableAfterFailures,
+          auditTrailEnabled: row.admin_settings.auditTrailEnabled,
+          locked: row.admin_settings.lockCriticalSettings,
+        },
+      },
+
+      metadata: {
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        ownerUserId: row.owner_user_id,
+      },
+    };
+    console.log(orderedPipelineResponse);
+    res.json({
+      status: true,
+      pipeline: orderedPipelineResponse,
+    });
+    return new Promise(() => {});
   },
 );
