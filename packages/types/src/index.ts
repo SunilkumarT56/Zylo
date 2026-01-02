@@ -155,7 +155,7 @@ export interface ScheduleConfig {
 
 export interface ApprovalFlow {
   enabled: boolean;
-  stages?: Array<"editor" | "reviewer" | "admin">;
+  stages?: Array<"Editor" | "Reviewer" | "Admin">;
 }
 
 export interface PipelineLimits {
@@ -174,18 +174,6 @@ export interface PipelineEvents {
     discordWebhook?: string;
   };
 }
-interface GitSourceConfig {
-  repoUrl: string;
-  branch: string;
-  path?: string;
-}
-interface S3SourceConfig {
-  bucket: string;
-  prefix?: string;
-}
-interface DriveSourceConfig {
-  driveFolderId: string;
-}
 
 export interface PipelineStats {
   runCount: number;
@@ -200,3 +188,17 @@ export type ConfigHandler = (
   userId: string,
   value: any
 ) => Promise<void>;
+
+interface GitSourceConfig {
+  repoUrl: string;
+  branch: string;
+  path?: string;
+}
+interface S3SourceConfig {
+  bucket: string;
+  prefix?: string;
+}
+interface DriveSourceConfig {
+  driveFolderId: string;
+}
+

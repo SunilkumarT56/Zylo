@@ -14,8 +14,11 @@ import {
   userProfileYT,
   createNewPipeline,
   userPipelines,
-  getPipelineById,
+  getPipelineByName,
+  deletePipelineByName,
   editConfig,
+  configAdavancedSettingsByName,
+  trashController,
 } from '../controllers/zylo.controller.js';
 import { upload } from '../middleware/upload.js';
 
@@ -34,6 +37,26 @@ router.get('/dashboard', authMiddleware, projectDashboard);
 router.get('/yt-pipeline/me', authMiddleware, userProfileYT);
 router.post('/create/pipeline', authMiddleware, upload.single('image'), createNewPipeline);
 router.get('/pipelines', authMiddleware, userPipelines);
-router.post('/pipelines/:name', authMiddleware, getPipelineById);
+router.post('/pipelines/:name', authMiddleware, getPipelineByName);
 router.post('/update-pipelines/:name', authMiddleware, upload.single('image'), editConfig);
+router.delete('/delete-pipeline/:name', authMiddleware, deletePipelineByName);
+router.post('/update-advancedsettings/:name', authMiddleware, configAdavancedSettingsByName );
+router.post('/trash', authMiddleware, trashController);
 export default router;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

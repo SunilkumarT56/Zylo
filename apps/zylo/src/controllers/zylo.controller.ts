@@ -7,7 +7,6 @@ import type {
   ThumbnailConfig,
   YouTubeConfig,
   ScheduleConfig,
-  ConfigHandler,
 } from '@zylo/types';
 import { pool } from '../config/postgresql.js';
 import axios from 'axios';
@@ -468,7 +467,6 @@ ORDER BY d.created_at DESC;
     });
   },
 );
-//  ----------------------------------------------------Youtube API------------------------------------------------------------------------//
 export const userProfileYT = AsyncHandler(
   async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
     const { id: userId } = req.user as { id: string };
@@ -691,7 +689,7 @@ export const userPipelines = AsyncHandler(
     return new Promise(() => {});
   },
 );
-export const getPipelineById = AsyncHandler(
+export const getPipelineByName = AsyncHandler(
   async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
     const { id: userId } = req.user as { id: string };
     const { name } = req.params as { name: string };
@@ -713,6 +711,7 @@ export const getPipelineById = AsyncHandler(
   status,
   color,
   created_at,
+  events_integrations,
   updated_at FROM pipelines WHERE name = $1 AND owner_user_id = $2
     `,
       [name, userId],
@@ -739,7 +738,8 @@ export const getPipelineById = AsyncHandler(
 
       configuration: {
         contentSource: row.content_source.type,
-        approvalFlow: row.approval_flow.enabled,
+        approvalFlow: row.approval_flow.enable,
+        stages: row.approval_flow.flow,
 
         youtube: {
           channelId: row.youtube_config.channelId,
@@ -784,6 +784,35 @@ export const getPipelineById = AsyncHandler(
           auditTrailEnabled: row.admin_settings.auditTrailEnabled,
           locked: row.admin_settings.lockCriticalSettings,
         },
+        integrations: {
+          behavior: {
+            nonBlocking: row.events_integrations?.behavior?.nonBlocking ?? true,
+          },
+
+          webhooks: {
+            onSuccess: {
+              enabled: row.events_integrations?.webhooks?.onSuccess?.enabled ?? false,
+              url: row.events_integrations?.webhooks?.onSuccess?.url ?? null,
+              timeoutSeconds: row.events_integrations?.webhooks?.onSuccess?.timeoutSeconds ?? 5,
+            },
+            onFailure: {
+              enabled: row.events_integrations?.webhooks?.onFailure?.enabled ?? false,
+              url: row.events_integrations?.webhooks?.onFailure?.url ?? null,
+              timeoutSeconds: row.events_integrations?.webhooks?.onFailure?.timeoutSeconds ?? 5,
+            },
+          },
+
+          alerts: {
+            slack: {
+              enabled: row.events_integrations?.alerts?.slack?.enabled ?? false,
+              webhookUrl: row.events_integrations?.alerts?.slack?.webhookUrl ?? null,
+            },
+            discord: {
+              enabled: row.events_integrations?.alerts?.discord?.enabled ?? false,
+              webhookUrl: row.events_integrations?.alerts?.discord?.webhookUrl ?? null,
+            },
+          },
+        },
       },
 
       metadata: {
@@ -791,6 +820,10 @@ export const getPipelineById = AsyncHandler(
         updatedAt: row.updated_at,
         ownerUserId: row.owner_user_id,
       },
+      approveFlow : {
+        enable: row.approval_flow.enable,
+        stage: row.approval_flow.stage
+      }
     };
     console.log(orderedPipelineResponse);
     res.json({
@@ -803,6 +836,7 @@ export const getPipelineById = AsyncHandler(
 export const editConfig = AsyncHandler(
   async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
     const { id: adminId } = req.user as { id: string };
+
     const {
       pipelineName: name,
       color,
@@ -828,44 +862,59 @@ export const editConfig = AsyncHandler(
       startAt,
       endAt,
     } = req.body;
-    const image: any = req.file;
+
+    const image = req.file as Express.Multer.File | undefined;
+
     const { rows } = await pool.query(
       `
-      SELECT u.id ,
-      oa.id AS "oauthId"
-      FROM users u
-      JOIN oauth_accounts oa
-      ON oa.user_id = u.id
-      WHERE u.id = $1
-      AND oa.provider = 'google'
+      SELECT oa.id AS "oauthId"
+      FROM oauth_accounts oa
+      WHERE oa.user_id = $1
+        AND oa.provider = 'google'
       LIMIT 1
       `,
       [adminId],
     );
-    let imageUrl: any = '';
+
     const oauthId = rows[0]?.oauthId;
-    if (image) {
-      imageUrl = await uploadImageToS3(image, adminId);
+
+    if (!oauthId) {
+      res.status(400).json({
+        status: false,
+        message: 'Google account not connected',
+      });
+      return;
     }
-    const ContentSourceConfig: ContentSourceConfig = {
+
+    let imageUrl: string | null = null;
+
+    if (image) {
+      const uploaded = await uploadImageToS3(image, adminId);
+      imageUrl = uploaded.url;
+    }
+
+    const contentSourceConfig: ContentSourceConfig = {
       type: sourceType,
       config: sourceConfig,
     };
-    const YouTubeConfig: YouTubeConfig = {
+
+    const youTubeConfig: YouTubeConfig = {
       channelId: connectedChannelId,
       oauthConnectionId: oauthId,
-      defaultPrivacy: defaultPrivacy,
+      defaultPrivacy,
       categoryId: category,
-      madeForKids: madeForKids,
+      madeForKids,
     };
-    const MetadataStrategy: MetadataStrategy = {
+
+    const metadataStrategy: MetadataStrategy = {
       titleTemplate,
       descriptionTemplate,
       tagsTemplate,
       language,
       region,
     };
-    const ScheduleConfig: ScheduleConfig = {
+
+    const scheduleConfig: ScheduleConfig = {
       timezone,
       frequency: scheduleFrequency,
       cronExpression,
@@ -873,42 +922,214 @@ export const editConfig = AsyncHandler(
       startAt,
       endAt,
     };
-    const ThumbnailConfig: ThumbnailConfig = {
+
+    const thumbnailConfig: ThumbnailConfig = {
       templateId: thumbnailTemplateId,
       mode: thumbnailMode,
     };
-    await pool.query(
+
+    const { rowCount } = await pool.query(
       `
       UPDATE pipelines
       SET
-        pipeline_type = $1,
-        execution_mode = $2,
-        content_source = $3,
-        youtube_config = $4,
-        metadata_strategy = $5,
-        thumbnail_config = $6,
-        schedule_config = $7,
-        color = $8,
-        image_url = $9,
-        updated_at = NOW()
+        pipeline_type      = $1,
+        execution_mode     = $2,
+        content_source     = $3::jsonb,
+        youtube_config     = $4::jsonb,
+        metadata_strategy  = $5::jsonb,
+        thumbnail_config   = $6::jsonb,
+        schedule_config    = $7::jsonb,
+        color              = $8,
+        image_url          = COALESCE($9, image_url),
+        updated_at         = NOW()
       WHERE name = $10
+        AND owner_user_id = $11
       `,
       [
         pipelineType,
         executionMode,
-        ContentSourceConfig,
-        YouTubeConfig,
-        MetadataStrategy,
-        ThumbnailConfig,
-        ScheduleConfig,
+        contentSourceConfig,
+        youTubeConfig,
+        metadataStrategy,
+        thumbnailConfig,
+        scheduleConfig,
         color,
-        imageUrl.url,
+        imageUrl,
         name,
+        adminId,
       ],
     );
+
+    if (rowCount === 0) {
+      res.status(404).json({
+        status: false,
+        message: 'Pipeline not found',
+      });
+      return new Promise(() => {});
+    }
     res.json({
       status: true,
       message: 'Configuration updated successfully',
+    });
+  },
+);
+export const deletePipelineByName = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id: userId } = req.user as { id: string };
+    const { name } = req.params as { name: string };
+    await pool.query(
+      `
+     INSERT INTO pipelines_trash
+     SELECT * FROM pipelines
+     WHERE name = $1 AND owner_user_id = $2;
+        `,
+      [name, userId],
+    ),
+      await pool.query(
+        `
+    DELETE FROM pipelines
+    WHERE name = $1
+      AND owner_user_id = $2
+    `,
+        [name, userId],
+      );
+    res.json({
+      status: true,
+      message: 'Pipeline deleted successfully',
+    });
+    return new Promise(() => {});
+  },
+);
+export const configAdavancedSettingsByName = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id: userId } = req.user as { id: string };
+    const { name } = req.params as { name: string };
+    const { approvalFlow, adminSettings, integrations } = req.body;
+    await pool.query(
+      `
+    UPDATE pipelines
+    SET approval_flow = $1::jsonb,
+    admin_settings = $2::jsonb,
+    events_integrations = $3::jsonb
+    WHERE name = $4
+      AND owner_user_id = $5
+    `,
+      [approvalFlow, adminSettings, integrations, name, userId],
+    );
+    res.json({
+      status: true,
+      message: 'Approval flow updated successfully',
+    });
+    return new Promise(() => {});
+  },
+);
+export const trashController = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id: userId } = req.user as { id: string };
+    const { name, event } = req.body as {
+      name?: string;
+      event?: 'restore' | 'delete' | 'count' | 'visit';
+    };
+    if (event === 'visit') {
+      const { rows } = await pool.query(
+        `
+        SELECT name
+        FROM pipelines_trash
+        WHERE owner_user_id = $1
+        `,
+        [userId],
+      );
+      res.json({
+        status: true,
+        trashedPipelines: rows,
+      });
+      return;
+    }
+
+    if (event === 'count') {
+      const { rows } = await pool.query(
+        `
+        SELECT COUNT(*)::int AS count
+        FROM pipelines_trash
+        WHERE owner_user_id = $1
+        `,
+        [userId],
+      );
+
+      res.json({
+        status: true,
+        count: rows[0].count,
+      });
+      return;
+    }
+    if (!name || !event) {
+      res.status(400).json({
+        status: false,
+        message: 'name and event are required',
+      });
+      return;
+    }
+    if (event === 'restore') {
+      const client = await pool.connect();
+
+      try {
+        await client.query('BEGIN');
+
+        await client.query(
+          `
+          INSERT INTO pipelines
+          SELECT *
+          FROM pipelines_trash
+          WHERE name = $1
+            AND owner_user_id = $2
+          `,
+          [name, userId],
+        );
+
+        await client.query(
+          `
+          DELETE FROM pipelines_trash
+          WHERE name = $1
+            AND owner_user_id = $2
+          `,
+          [name, userId],
+        );
+
+        await client.query('COMMIT');
+
+        res.json({
+          status: true,
+          message: 'Pipeline restored successfully',
+        });
+        return;
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+
+    if (event === 'delete') {
+      await pool.query(
+        `
+        DELETE FROM pipelines_trash
+        WHERE name = $1
+          AND owner_user_id = $2
+        `,
+        [name, userId],
+      );
+
+      res.json({
+        status: true,
+        message: 'Pipeline permanently deleted',
+      });
+      return;
+    }
+
+    res.status(400).json({
+      status: false,
+      message: 'Invalid event type',
     });
   },
 );

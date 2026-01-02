@@ -34,7 +34,6 @@
       "frequency": "cron",
       "cronExpression": "0 9 ** 1 - 5"
     },
-    "approval_flow": { "enabled": false },
     "limits": {
       "maxFileSizeMb": 1024,
       "maxDailyUploads": 10,
@@ -57,5 +56,39 @@
       "timeoutPerStepSeconds": 300,
       "autoDisableAfterFailures": 3
     }
+  },
+{
+  "approvalFlow" : {
+  "enable" : true,
+  "stage" : "['Editor', 'Reviewer', 'Admin']"
+  },
+  "integrations" : {
+    "webhooks": {
+      "onSuccess": {
+        "enabled": false,
+        "url": null,
+        "timeoutSeconds": 5
+      },
+      "onFailure": {
+        "enabled": false,
+        "url": null,
+        "timeoutSeconds": 5
+      }
+    },
+    "alerts": {
+      "slack": {
+        "enabled": false,
+        "webhookUrl": null
+      },
+      "discord": {
+        "enabled": false,
+        "webhookUrl": null
+      }
+    },
+    "behavior": {
+      "nonBlocking": true
+    }
+  }
+
   }
 ]
