@@ -60,6 +60,8 @@ import {
   Ban,
   Copyright,
   Scroll,
+  Search,
+  SquareCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PipelineSettingsModal } from './PipelineSettingsModal';
@@ -82,6 +84,162 @@ interface MenuCategory {
   label: string;
   icon: React.ReactNode;
   options: MenuOption[];
+}
+
+interface MembersModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  pipelineName: string;
+  position: { top: number; left: number } | null;
+}
+
+interface Member {
+  email: string;
+  role: string;
+}
+
+function MembersModal({ isOpen, onClose, pipelineName, position }: MembersModalProps) {
+  const [loading, setLoading] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const token =
+          localStorage.getItem('authToken') ||
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3NjcwMjIyNjQsImV4cCI6MTc2NzYyNzA2NH0.EA5Pfu0vIkHI5SatbEbZ6HLw2y6QStoXOALz5cRJTiM';
+
+        const response = await fetch(
+          `https://untolerative-len-rumblingly.ngrok-free.dev/user/get-members/${pipelineName}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              'ngrok-skip-browser-warning': 'true',
+            },
+          },
+        );
+
+        const data = await response.json();
+        if (data.status && Array.isArray(data.emails)) {
+          // Normalize data in case it's still just strings in some scenarios, though requirements say objects
+          const parsedMembers: Member[] = data.emails.map((item: unknown) =>
+            typeof item === 'string' ? { email: item, role: 'MEMBER' } : (item as Member),
+          );
+          setMembers(parsedMembers);
+        } else {
+          console.warn('Unexpected members response format:', data);
+          if (Array.isArray(data)) {
+            const parsedMembers: Member[] = data.map((item: unknown) =>
+              typeof item === 'string' ? { email: item, role: 'MEMBER' } : (item as Member),
+            );
+            setMembers(parsedMembers);
+          } else {
+            setError('Failed to load members.');
+          }
+        }
+      } catch (err) {
+        setError('Error fetching members.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isOpen && pipelineName) {
+      fetchMembers();
+    }
+  }, [isOpen, pipelineName]);
+
+  if (!isOpen || !position) return null;
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 z-[90]" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, x: -10 }}
+        animate={{ opacity: 1, scale: 1, x: 0 }}
+        exit={{ opacity: 0, scale: 0.95, x: -10 }}
+        style={{
+          top: position.top,
+          left: position.left,
+        }}
+        className="fixed z-[100] w-[350px] max-h-[400px] bg-[#191919] border border-[#333] rounded-lg shadow-2xl flex flex-col overflow-hidden"
+      >
+        {/* Header with Search */}
+        <div className="p-3 border-b border-[#2F2F2F]">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search members"
+              className="w-full bg-[#202020] border border-[#333] rounded px-3 py-1.5 pl-8 text-sm text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
+            />
+            <Search className="absolute left-2.5 top-2 w-3.5 h-3.5 text-zinc-600" />
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#252525] border border-[#2F2F2F] text-[10px] text-zinc-400 cursor-pointer hover:text-zinc-300">
+              <User className="w-3 h-3" />
+              Role
+            </div>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#252525] border border-[#2F2F2F] text-[10px] text-zinc-400 cursor-pointer hover:text-zinc-300">
+              <SquareCheck className="w-3 h-3" />
+              Status
+            </div>
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#191919]">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-8 text-zinc-500 gap-2 h-full">
+              <div className="w-5 h-5 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs">Loading members...</span>
+            </div>
+          ) : error ? (
+            <div className="text-red-400 text-center py-4 px-4 text-sm h-full flex items-center justify-center">
+              {error}
+            </div>
+          ) : members.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-3 py-8">
+              <User className="w-8 h-8 opacity-20" />
+              <span className="text-sm font-medium">No members found</span>
+            </div>
+          ) : (
+            <div className="p-1 space-y-0.5">
+              {members.map((member, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 p-2 rounded hover:bg-[#252525] group transition-colors"
+                >
+                  <div className="w-8 h-8 rounded bg-[#2A2A2A] flex items-center justify-center text-white font-bold text-xs uppercase flex-shrink-0 border border-[#333]">
+                    {member.email[0]}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm text-[#E3E3E3] truncate">{member.email}</span>
+                    <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">
+                      {member.role}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-2 border-t border-[#2F2F2F] bg-[#191919]">
+          <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-500">
+            <span>Managing members for {pipelineName}</span>
+          </div>
+        </div>
+      </motion.div>
+    </>,
+    document.body,
+  );
 }
 
 const MENU_DATA: MenuCategory[] = [
@@ -429,6 +587,10 @@ export function PipelineActionsMenu({
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, align: 'right' });
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  const [membersModalPos, setMembersModalPos] = useState<{ top: number; left: number } | null>(
+    null,
+  );
   const [settingsSection, setSettingsSection] = useState('general');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -558,6 +720,13 @@ export function PipelineActionsMenu({
 
     if (action === 'delete') {
       setIsDeleteModalOpen(true);
+      return;
+    }
+
+    if (action === 'view_members') {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setMembersModalPos({ top: rect.top, left: rect.right + 10 });
+      setIsMembersModalOpen(true);
       return;
     }
 
@@ -1089,6 +1258,13 @@ export function PipelineActionsMenu({
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeletePipeline}
         pipelineName={pipeline?.name || ''}
+      />
+
+      <MembersModal
+        isOpen={isMembersModalOpen}
+        onClose={() => setIsMembersModalOpen(false)}
+        pipelineName={pipeline?.name || ''}
+        position={membersModalPos}
       />
     </>
   );

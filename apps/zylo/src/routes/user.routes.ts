@@ -21,6 +21,8 @@ import {
   trashController,
   startAutomationController,
   countThePipelines,
+  getMembersBypipeline,
+  inviteMembersToPipeline
 } from '../controllers/zylo.controller.js';
 import { upload } from '../middleware/upload.js';
 
@@ -46,4 +48,6 @@ router.post('/update-advancedsettings/:name', authMiddleware, configAdavancedSet
 router.post('/trash', authMiddleware, trashController);
 router.post('/pipeline/run/:name', authMiddleware, startAutomationController);
 router.get('/get-count-pipelines', authMiddleware, countThePipelines);
+router.get('/get-members/:name', authMiddleware, getMembersBypipeline);
+router.post("/pipelines/:name/invites", authMiddleware,inviteMembersToPipeline );
 export default router;

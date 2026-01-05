@@ -40,7 +40,6 @@ const TABS = [
   { id: 'events', label: 'Events & Integrations', icon: Bell },
   { id: 'safety', label: 'Safety Controls', icon: Shield },
   { id: 'observability', label: 'Observability', icon: Activity },
-  { id: 'scheduling', label: 'Scheduling', icon: Clock },
 ];
 
 export function PipelineAdvancedSettingsModal({

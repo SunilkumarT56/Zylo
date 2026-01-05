@@ -22,6 +22,13 @@ import { ERROR_CODES } from '@zylo/errors';
 import { AsyncHandler } from '../utils/asyncHandler.js';
 import { fetchMyChannelDetails, getValidGoogleAccessToken } from '../services/youtube.service.js';
 import { uploadImageToS3 } from '../services/uploadToS3.js';
+import { isValidEmail, normalizeEmail } from '../utils/emailchecker.js';
+import crypto from 'crypto';
+import {createClient} from 'redis';
+
+const redisClient = createClient();
+redisClient.on('error', (err) => console.log('Redis Client Error', err));
+redisClient.on('ready', () => console.log('Redis Client Ready'));
 
 export const userProfile = async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
   const { id } = req.user as { id: string };
@@ -610,6 +617,19 @@ export const createNewPipeline = AsyncHandler(
       `,
       [adminId],
     );
+
+    let scheduleConfig: ScheduleConfig | null = null;
+
+    if (executionMode === 'scheduled') {
+      scheduleConfig = {
+        timezone,
+        frequency: scheduleFrequency,
+        cronExpression,
+        intervalMinutes,
+        startAt,
+        endAt,
+      };
+    }
     const pipelineName = response.rows.find((row: any) => row.name === name);
     if (pipelineName) {
       res.status(400).json({
@@ -648,24 +668,41 @@ export const createNewPipeline = AsyncHandler(
       templateId: thumbnailTemplateId,
       mode: thumbnailMode,
     };
-    await pool.query(
-      `
+    await pool.query('BEGIN');
+    try {
+      const result = await pool.query(
+        `
       INSERT INTO pipelines (name , owner_user_id , pipeline_type , execution_mode ,content_source , youtube_config , metadata_strategy , thumbnail_config ,schedule_config,color , image_url)
-      VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10 , $11)`,
-      [
-        name,
-        adminId,
-        pipelineType,
-        executionMode,
-        ContentSourceConfig,
-        YouTubeConfig,
-        MetadataStrategy,
-        ThumbnailConfig,
-        ScheduleConfig,
-        color,
-        imageUrl.url,
-      ],
-    );
+      VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 :: jsonb , $8 , $9 , $10 , $11)
+      RETURNING id`,
+        [
+          name,
+          adminId,
+          pipelineType,
+          executionMode,
+          ContentSourceConfig,
+          YouTubeConfig,
+          MetadataStrategy,
+          ThumbnailConfig,
+          ScheduleConfig,
+          color,
+          imageUrl.url,
+        ],
+      );
+      const pipelineId = result.rows[0].id;
+      await pool.query(
+        `
+      INSERT INTO pipeline_members
+      (pipeline_id , user_id , role , added_by )
+      VALUES ($1 , $2 , 'OWNER' , NULL)
+      `,
+        [pipelineId, adminId],
+      );
+      await pool.query('COMMIT');
+    } catch (error) {
+      console.error(error);
+      await pool.query('ROLLBACK');
+    }
     res.json({
       status: true,
       message: 'pipeline created',
@@ -677,7 +714,10 @@ export const userPipelines = AsyncHandler(
     const { id: userId } = req.user as { id: string };
     const { rows } = await pool.query(
       `
-      SELECT * FROM pipelines WHERE owner_user_id = $1
+      SELECT * FROM pipelines
+      WHERE owner_user_id = $1 AND
+      deleted_at IS NULL
+      ORDER BY created_at DESC;
       `,
       [userId],
     );
@@ -718,7 +758,8 @@ export const getPipelineByName = AsyncHandler(
         events_integrations
       FROM pipelines
       WHERE name = $1
-        AND owner_user_id = $2
+      AND owner_user_id = $2 AND
+      deleted_at IS NULL
       LIMIT 1
       `,
       [name, userId],
@@ -734,7 +775,7 @@ export const getPipelineByName = AsyncHandler(
       return;
     }
 
-    const isScheduled = row.execution_mode === 'schedule';
+    const isScheduled = row.execution_mode === 'scheduled';
     const scheduleConfig = isScheduled ? row.schedule_config : null;
 
     const orderedPipelineResponse = {
@@ -1006,27 +1047,50 @@ export const deletePipelineByName = AsyncHandler(
   async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
     const { id: userId } = req.user as { id: string };
     const { name } = req.params as { name: string };
-    await pool.query(
-      `
-     INSERT INTO pipelines_trash
-     SELECT * FROM pipelines
-     WHERE name = $1 AND owner_user_id = $2;
-        `,
-      [name, userId],
-    ),
-      await pool.query(
+
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const { rowCount } = await client.query(
         `
-    DELETE FROM pipelines
-    WHERE name = $1
-      AND owner_user_id = $2
-    `,
+        UPDATE pipelines
+        SET deleted_at = now()
+        WHERE name = $1
+          AND owner_user_id = $2
+          AND deleted_at IS NULL
+        `,
         [name, userId],
       );
-    res.json({
-      status: true,
-      message: 'Pipeline deleted successfully',
-    });
-    return new Promise(() => {});
+
+      if (rowCount === 0) {
+        throw new Error('Pipeline not found or already deleted');
+      }
+      await client.query(
+        `
+        UPDATE pipeline_members
+        SET deleted_at = now()
+        WHERE pipeline_id = (
+          SELECT id FROM pipelines
+          WHERE name = $1 AND owner_user_id = $2
+        )
+        `,
+        [name, userId],
+      );
+
+      await client.query('COMMIT');
+
+      res.json({
+        status: true,
+        message: 'Pipeline moved to trash',
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   },
 );
 export const configAdavancedSettingsByName = AsyncHandler(
@@ -1062,12 +1126,15 @@ export const trashController = AsyncHandler(
     if (event === 'visit') {
       const { rows } = await pool.query(
         `
-        SELECT name
-        FROM pipelines_trash
+        SELECT id, name, deleted_at
+        FROM pipelines
         WHERE owner_user_id = $1
+          AND deleted_at IS NOT NULL
+        ORDER BY deleted_at DESC
         `,
         [userId],
       );
+
       res.json({
         status: true,
         trashedPipelines: rows,
@@ -1079,8 +1146,9 @@ export const trashController = AsyncHandler(
       const { rows } = await pool.query(
         `
         SELECT COUNT(*)::int AS count
-        FROM pipelines_trash
+        FROM pipelines
         WHERE owner_user_id = $1
+          AND deleted_at IS NOT NULL
         `,
         [userId],
       );
@@ -1091,6 +1159,7 @@ export const trashController = AsyncHandler(
       });
       return;
     }
+
     if (!name || !event) {
       res.status(400).json({
         status: false,
@@ -1106,9 +1175,8 @@ export const trashController = AsyncHandler(
 
         await client.query(
           `
-          INSERT INTO pipelines
-          SELECT *
-          FROM pipelines_trash
+          UPDATE pipelines
+          SET deleted_at = NULL
           WHERE name = $1
             AND owner_user_id = $2
           `,
@@ -1117,9 +1185,12 @@ export const trashController = AsyncHandler(
 
         await client.query(
           `
-          DELETE FROM pipelines_trash
-          WHERE name = $1
-            AND owner_user_id = $2
+          UPDATE pipeline_members
+          SET deleted_at = NULL
+          WHERE pipeline_id = (
+            SELECT id FROM pipelines
+            WHERE name = $1 AND owner_user_id = $2
+          )
           `,
           [name, userId],
         );
@@ -1138,22 +1209,48 @@ export const trashController = AsyncHandler(
         client.release();
       }
     }
-
     if (event === 'delete') {
-      await pool.query(
-        `
-        DELETE FROM pipelines_trash
-        WHERE name = $1
-          AND owner_user_id = $2
-        `,
-        [name, userId],
-      );
+      const client = await pool.connect();
 
-      res.json({
-        status: true,
-        message: ERROR_CODES.PIPELINE_PERMANENTLY_DELETED,
-      });
-      return;
+      try {
+        await client.query('BEGIN');
+
+        await client.query(
+          `
+          DELETE FROM pipeline_members
+          WHERE pipeline_id = (
+            SELECT id FROM pipelines
+            WHERE name = $1
+              AND owner_user_id = $2
+              AND deleted_at IS NOT NULL
+          )
+          `,
+          [name, userId],
+        );
+
+        await client.query(
+          `
+          DELETE FROM pipelines
+          WHERE name = $1
+            AND owner_user_id = $2
+            AND deleted_at IS NOT NULL
+          `,
+          [name, userId],
+        );
+
+        await client.query('COMMIT');
+
+        res.json({
+          status: true,
+          message: ERROR_CODES.PIPELINE_PERMANENTLY_DELETED,
+        });
+        return;
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
     }
 
     res.status(400).json({
@@ -1312,7 +1409,7 @@ export const countThePipelines = AsyncHandler(
       `,
       [userId],
     );
-    console.log()
+    console.log();
     res.json({
       status: true,
       count: rows[0].count,
@@ -1320,4 +1417,171 @@ export const countThePipelines = AsyncHandler(
     return new Promise(() => {});
   },
 );
+export const getMembersBypipeline = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id: userId } = req.user as { id: string };
+    const { name } = req.params as { name: string };
+    const { rows } = await pool.query(
+      `
+    SELECT id FROM pipelines
+    WHERE name = $1
+      AND owner_user_id = $2
+    LIMIT 1
+    `,
+      [name, userId],
+    );
+    const pipelineId = rows[0]?.id;
+    if (!pipelineId) {
+      res.json({
+        status: false,
+        message: ERROR_CODES.PIPELINE_NOT_FOUND,
+      });
+    }
+    const { rows: members } = await pool.query(
+      `
+    SELECT
+      user_id , role FROM pipeline_members
+    WHERE pipeline_id = $1
+    `,
+      [pipelineId],
+    );
+    const emails = [];
+    for (const member of members) {
+      const { rows } = await pool.query(
+        `
+      SELECT email
+      FROM users
+      WHERE id = $1
+      `,
+        [member.user_id],
+      );
+      emails.push({ email: rows[0].email, role: member.role });
+    }
+    res.json({
+      status: true,
+      emails,
+    });
+    return new Promise(() => {});
+  },
+);
+export const inviteMembersToPipeline = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response) => {
+    await redisClient.connect();
+    const { id: userId } = req.user as { id: string };
+    const { name } = req.params as { name: string };
+    let { email, role } = req.body as { email: string; role: string };
 
+    email = normalizeEmail(email);
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        status: false,
+        message: ERROR_CODES.INVALID_EMAIL,
+      });
+    }
+
+    const allowedRoles = ['EDITOR', 'VIEWER', 'REVIEWER'];
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({
+        status: false,
+        message: ERROR_CODES.INVALID_ROLE,
+      });
+    }
+
+    const { rows: pipelineRows } = await pool.query(
+      `
+      SELECT id
+      FROM pipelines
+      WHERE name = $1
+        AND owner_user_id = $2
+        AND deleted_at IS NULL
+      LIMIT 1
+      `,
+      [name, userId],
+    );
+
+    const pipelineId = pipelineRows[0]?.id;
+    if (!pipelineId) {
+      return res.status(403).json({
+        status: false,
+        message: ERROR_CODES.PIPELINE_NOT_FOUND_OR_NO_PERMISSION,
+      });
+    }
+
+    const { rows: userRows } = await pool.query(
+      `
+      SELECT id
+      FROM users
+      WHERE email = $1
+      LIMIT 1
+      `,
+      [email],
+    );
+
+    const invitedUserId = userRows[0]?.id;
+
+    if (invitedUserId) {
+      const { rowCount } = await pool.query(
+        `
+        SELECT 1
+        FROM pipeline_members
+        WHERE pipeline_id = $1
+          AND user_id = $2
+          AND deleted_at IS NULL
+        `,
+        [pipelineId, invitedUserId],
+      );
+      //@ts-ignore
+      if (rowCount > 0) {
+        return res.status(409).json({
+          status: false,
+          message: ERROR_CODES.USER_ALREADY_AN_ACTIVEMEMBER_IN_THIS_PIPELINE,
+        });
+      }
+    }
+
+    const { rowCount: inviteExists } = await pool.query(
+      `
+      SELECT 1
+      FROM pipeline_invites
+      WHERE pipeline_id = $1
+        AND email = $2
+        AND status = 'PENDING'
+        AND expires_at > now()
+      `,
+      [pipelineId, email],
+    );
+
+    //@ts-ignore
+    if (inviteExists > 0) {
+      return res.status(409).json({
+        status: false,
+        message: ERROR_CODES.INVITE_ALREADY_SENT,
+      });
+    }
+    const token = crypto.randomUUID();
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    await pool.query(
+      `
+      INSERT INTO pipeline_invites (
+        pipeline_id,
+        email,
+        role,
+        invited_by,
+        token,
+        expires_at
+      )
+      VALUES ($1, $2, $3, $4, $5, now() + interval '48 hours')
+      `,
+      [pipelineId, email, role, userId, hashedToken],
+    );
+   await redisClient.hSet(`invite`, {Email : email , Token : token});
+
+
+    return res.json({
+      status: true,
+      message: ERROR_CODES.INVITE_SENT_SUCCESSFULLY,
+    });
+  },
+);
