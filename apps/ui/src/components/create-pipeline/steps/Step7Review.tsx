@@ -29,7 +29,7 @@ export function Step7Review() {
       let token = localStorage.getItem('authToken');
       if (!token) {
         token =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3NjcwMjIyNjQsImV4cCI6MTc2NzYyNzA2NH0.EA5Pfu0vIkHI5SatbEbZ6HLw2y6QStoXOALz5cRJTiM';
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
       }
 
       let sourceConfig = {};
@@ -122,9 +122,13 @@ export function Step7Review() {
       // Success
       setIsSuccess(true);
       setIsSubmissionSuccess(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Creation failed', err);
-      setError(err.message || 'Failed to create pipeline. Backend rejection or network error.');
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to create pipeline. Backend rejection or network error.';
+      setError(errorMessage);
     } finally {
       setIsCreating(false);
     }

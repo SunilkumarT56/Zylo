@@ -7,7 +7,7 @@ import { Logo } from '@/components/Logo';
 import { motion } from 'framer-motion';
 
 interface SignupPageProps {
-  onLogin?: (user?: any) => void;
+  onLogin?: (user?: unknown) => void;
 }
 
 export function SignupPage({ onLogin }: SignupPageProps) {

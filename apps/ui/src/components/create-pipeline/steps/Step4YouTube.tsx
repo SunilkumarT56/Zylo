@@ -34,7 +34,7 @@ const PrivacyOption = ({
   onSelect,
 }: {
   value: PrivacyStatus;
-  icon: any;
+  icon: React.ElementType;
   label: string;
   currentValue: PrivacyStatus;
   onSelect: (val: PrivacyStatus) => void;
@@ -150,9 +150,9 @@ export function Step4YouTube() {
               try {
                 const token =
                   localStorage.getItem('authToken') ||
-                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3NjcwMjIyNjQsImV4cCI6MTc2NzYyNzA2NH0.EA5Pfu0vIkHI5SatbEbZ6HLw2y6QStoXOALz5cRJTiM';
+                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
                 const response = await fetch(
-                  'https://untolerative-len-rumblingly.ngrok-free.dev/auth/google/url',
+                  `https://untolerative-len-rumblingly.ngrok-free.dev/auth/google/url`,
                   {
                     headers: {
                       Authorization: `Bearer ${token}`,

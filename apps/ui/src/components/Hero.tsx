@@ -142,7 +142,7 @@ export function Hero() {
 
         if (!token) {
           token =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDhmZjI3MC04ZGYzLTQ5MWQtOTg5ZC00NjE5MjZlOWYyNDQiLCJpYXQiOjE3NjcwMDA1MjAsImV4cCI6MTc2NzYwNTMyMH0.yMsdZc22iXl_FU1Gw_JIXvENljqEQbI_Rh3iohP8k2Q';
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
         }
 
         const headers: HeadersInit = {
@@ -200,7 +200,7 @@ export function Hero() {
       let token = localStorage.getItem('authToken');
       if (!token) {
         token =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDhmZjI3MC04ZGYzLTQ5MWQtOTg5ZC00NjE5MjZlOWYyNDQiLCJpYXQiOjE3NjcwMDA1MjAsImV4cCI6MTc2NzYwNTMyMH0.yMsdZc22iXl_FU1Gw_JIXvENljqEQbI_Rh3iohP8k2Q';
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
       }
 
       const owner = userLogin || repo.owner?.login;
@@ -209,8 +209,8 @@ export function Hero() {
       }
 
       const endpoint = isImportAction
-        ? 'https://untolerative-len-rumblingly.ngrok-free.dev/user/new/import'
-        : 'https://untolerative-len-rumblingly.ngrok-free.dev/user/preview';
+        ? `https://untolerative-len-rumblingly.ngrok-free.dev/user/new/import`
+        : `https://untolerative-len-rumblingly.ngrok-free.dev/user/preview`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -297,7 +297,7 @@ export function Hero() {
       let token = localStorage.getItem('authToken');
       if (!token) {
         token =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDhmZjI3MC04ZGYzLTQ5MWQtOTg5ZC00NjE5MjZlOWYyNDQiLCJpYXQiOjE3NjcwMDA1MjAsImV4cCI6MTc2NzYwNTMyMH0.yMsdZc22iXl_FU1Gw_JIXvENljqEQbI_Rh3iohP8k2Q';
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
       }
 
       const response = await fetch(
@@ -340,7 +340,7 @@ export function Hero() {
       let token = localStorage.getItem('authToken');
       if (!token) {
         token =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDhmZjI3MC04ZGYzLTQ5MWQtOTg5ZC00NjE5MjZlOWYyNDQiLCJpYXQiOjE3NjcwMDA1MjAsImV4cCI6MTc2NzYwNTMyMH0.yMsdZc22iXl_FU1Gw_JIXvENljqEQbI_Rh3iohP8k2Q';
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
       }
 
       const envsObject = config.envVars
@@ -415,7 +415,8 @@ export function Hero() {
       } else {
         setError('Deployment failed. Please try again.');
       }
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setError('An error occurred during deployment.');
     } finally {
       setDeploying(false);

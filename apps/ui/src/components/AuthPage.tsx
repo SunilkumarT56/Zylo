@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 interface AuthPageProps {
-  onLogin: (user?: any) => void;
+  onLogin: (user?: unknown) => void;
 }
 
 export function AuthPage({ onLogin }: AuthPageProps) {

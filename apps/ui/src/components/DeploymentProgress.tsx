@@ -40,7 +40,7 @@ export function DeploymentProgress() {
         let token = localStorage.getItem('authToken');
         if (!token) {
           token =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDhmZjI3MC04ZGYzLTQ5MWQtOTg5ZC00NjE5MjZlOWYyNDQiLCJpYXQiOjE3NjcwMDA1MjAsImV4cCI6MTc2NzYwNTMyMH0.yMsdZc22iXl_FU1Gw_JIXvENljqEQbI_Rh3iohP8k2Q';
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
         }
 
         const response = await fetch(

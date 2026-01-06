@@ -57,7 +57,7 @@ function App() {
       if (!token) {
         console.log('Using fallback hardcoded token');
         token =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDhmZjI3MC04ZGYzLTQ5MWQtOTg5ZC00NjE5MjZlOWYyNDQiLCJpYXQiOjE3NjcwMDA1MjAsImV4cCI6MTc2NzYwNTMyMH0.yMsdZc22iXl_FU1Gw_JIXvENljqEQbI_Rh3iohP8k2Q';
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
       }
 
       if (token) {
@@ -197,7 +197,7 @@ function App() {
             path="/login"
             element={
               !isAuthenticated ? (
-                <AuthPage onLogin={handleLogin} />
+                <AuthPage onLogin={(u) => handleLogin(u as UserData)} />
               ) : (
                 <Navigate to="/yt-pipeline-dashboard" replace />
               )
@@ -207,7 +207,7 @@ function App() {
             path="/signup"
             element={
               !isAuthenticated ? (
-                <SignupPage onLogin={handleLogin} />
+                <SignupPage onLogin={(u) => handleLogin(u as UserData)} />
               ) : (
                 <Navigate to="/yt-pipeline-dashboard" replace />
               )

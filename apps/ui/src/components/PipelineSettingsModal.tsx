@@ -24,6 +24,7 @@ import {
   type ChannelData,
   type PrivacyStatus,
   type ExecutionMode,
+  type SourceType,
 } from './create-pipeline/types';
 
 // Import Steps
@@ -91,9 +92,9 @@ const mapDetailsToData = (details: PipelineDetails): PipelineData => {
   const schedule = config.schedule || {};
 
   // Determine Source Type
-  let sourceType: any = 'upload';
+  let sourceType: string = 'upload';
   if (details.source_type) {
-    sourceType = details.source_type;
+    sourceType = details.source_type as string;
   } else if (config.contentSource) {
     if (config.contentSource === 'Google Drive' || config.contentSource === 'google_drive')
       sourceType = 'google_drive';
@@ -109,9 +110,12 @@ const mapDetailsToData = (details: PipelineDetails): PipelineData => {
 
   // Extract Source Config
   // Handle case where source_config might be returned as a string (if stored strictly as JSON string) or object
-  let sourceConfig: any = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let sourceConfig: Record<string, any> = {};
   const rawSourceConfig =
-    details.source_config || details.sourceConfig || (config as any).sourceConfig;
+    details.source_config ||
+    details.sourceConfig ||
+    (config as Record<string, unknown>).sourceConfig;
 
   if (rawSourceConfig) {
     if (typeof rawSourceConfig === 'string') {
@@ -131,7 +135,7 @@ const mapDetailsToData = (details: PipelineDetails): PipelineData => {
     executionMode: (details.executionMode || details.execution_mode || 'manual') as ExecutionMode,
 
     // Source
-    sourceType: sourceType,
+    sourceType: sourceType as SourceType,
     driveFolderId: sourceConfig.driveFolderId || '',
     s3Bucket: sourceConfig.s3Bucket || '',
     s3Prefix: sourceConfig.s3Prefix || '',
@@ -201,7 +205,7 @@ export function PipelineSettingsModal({
       try {
         const token =
           localStorage.getItem('authToken') ||
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3NjcwMjIyNjQsImV4cCI6MTc2NzYyNzA2NH0.EA5Pfu0vIkHI5SatbEbZ6HLw2y6QStoXOALz5cRJTiM';
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
         const response = await fetch(
           `https://untolerative-len-rumblingly.ngrok-free.dev/user/pipelines/${pipelineName}`,
           {
@@ -242,7 +246,7 @@ export function PipelineSettingsModal({
         try {
           const token =
             localStorage.getItem('authToken') ||
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3NjcwMjIyNjQsImV4cCI6MTc2NzYyNzA2NH0.EA5Pfu0vIkHI5SatbEbZ6HLw2y6QStoXOALz5cRJTiM';
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
           const response = await fetch(
             'https://untolerative-len-rumblingly.ngrok-free.dev/user/yt-pipeline/me',
             {
@@ -469,7 +473,7 @@ export function PipelineSettingsModal({
                   try {
                     const token =
                       localStorage.getItem('authToken') ||
-                      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3NjcwMjIyNjQsImV4cCI6MTc2NzYyNzA2NH0.EA5Pfu0vIkHI5SatbEbZ6HLw2y6QStoXOALz5cRJTiM';
+                      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZDUyMTFkMi1kODY5LTQwMTctYjdkNi01NDljMTQzYTYyYmQiLCJpYXQiOjE3Njc2NDAzODYsImV4cCI6MTc3NjE5Mzk4Nn0.8aandcUrp7hKDP8Ryw5xlP51Z0EZYKZyec8xM43lZUU';
 
                     // Construct sourceConfig
                     let sourceConfig = {};
