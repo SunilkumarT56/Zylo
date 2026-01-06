@@ -9,6 +9,7 @@ import type {
   ScheduleConfig,
   AutomationValidationResult,
 } from '@zylo/types';
+import { redisClient } from '../services/redis.service.js';
 import { pool } from '../config/postgresql.js';
 import axios from 'axios';
 import { enqueueEvent } from '../config/enque.js';
@@ -24,11 +25,6 @@ import { fetchMyChannelDetails, getValidGoogleAccessToken } from '../services/yo
 import { uploadImageToS3 } from '../services/uploadToS3.js';
 import { isValidEmail, normalizeEmail } from '../utils/emailchecker.js';
 import crypto from 'crypto';
-import {createClient} from 'redis';
-
-const redisClient = createClient();
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
-redisClient.on('ready', () => console.log('Redis Client Ready'));
 
 export const userProfile = async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
   const { id } = req.user as { id: string };
@@ -1576,12 +1572,130 @@ export const inviteMembersToPipeline = AsyncHandler(
       `,
       [pipelineId, email, role, userId, hashedToken],
     );
-   await redisClient.hSet(`invite`, {Email : email , Token : token});
-
+    await redisClient.hSet(`invite`, { Email: email, Token: token, Role: role });
 
     return res.json({
       status: true,
       message: ERROR_CODES.INVITE_SENT_SUCCESSFULLY,
+    });
+  },
+);
+export const acceptMembersToPipeline = AsyncHandler(async (req: Request, res: Response) => {
+  const token = req.query.token as string;
+
+  if (!token) {
+    return res.status(400).json({
+      status: false,
+      message: ERROR_CODES.TOKEN_REQUIRED,
+    });
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const { rows } = await pool.query(
+    `
+      SELECT pipeline_id, email, role, expires_at
+      FROM pipeline_invites
+      WHERE token = $1
+      `,
+    [hashedToken],
+  );
+
+  if (rows.length === 0) {
+    return res.status(400).json({
+      status: false,
+      message: ERROR_CODES.INVALID_TOKEN,
+    });
+  }
+
+  const invite = rows[0];
+
+  if (new Date(invite.expires_at) < new Date()) {
+    return res.status(400).json({
+      status: false,
+      message: ERROR_CODES.TOKEN_EXPIRED,
+    });
+  }
+
+  await pool.query(
+    `
+      INSERT INTO pipeline_members (pipeline_id, email, role)
+      VALUES ($1, $2, $3)
+      ON CONFLICT DO NOTHING
+      `,
+    [invite.pipeline_id, invite.email, invite.role],
+  );
+
+  await pool.query(
+    `
+      DELETE FROM pipeline_invites
+      WHERE token = $1
+      `,
+    [hashedToken],
+  );
+  return res.status(200).json({
+    status: true,
+    message: 'Pipeline invitation accepted successfully',
+  });
+});
+export const changeTheRole = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id: userId } = req.user as { id: string };
+    const { email, name, newRole } = req.body;
+    const response = await pool.query(
+      `
+    SELECT id FROM pipelines
+    WHERE name = $1
+    AND owner_user_id = $2
+    LIMIT 1
+    `,
+      [name, userId],
+    );
+    const pipelineId = response.rows[0]?.id;
+    await pool.query(
+      `
+    UPDATE pipeline_members
+    SET role = ${newRole}
+    WHERE email = $1
+    pipeline_id = $2`,
+      [email, pipelineId],
+    );
+    res.json({
+      status: true,
+      message: 'Role changed successfully',
+    });
+  },
+);
+export const deleteMemberFromThePipeline = AsyncHandler(
+  async (req: AuthenticateUserRequest, res: Response): Promise<void> => {
+    const { id: userId } = req.user as { id: string };
+    const { email, name } = req.body;
+    const response = await pool.query(
+      `
+      SELECT id FROM pipelines
+      WHERE name = $1
+      AND owner_user_id = $2
+      LIMIT 1
+      `,
+      [name, userId],
+    );
+    const pipelineId = response.rows[0]?.id;
+    if (pipelineId !== userId) {
+      res.json({
+        status: false,
+        message: 'You are not the owner of the pipeline',
+      });
+    }
+    await pool.query(
+      `
+      DELETE FROM pipeline_members
+      WHERE email = $1
+      AND pipeline_id = $2`,
+      [email, pipelineId],
+    );
+    res.json({
+      status: true,
+      message: 'Member deleted successfully',
     });
   },
 );
