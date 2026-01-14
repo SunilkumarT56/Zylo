@@ -25,7 +25,6 @@ import { fetchMyChannelDetails, getValidGoogleAccessToken } from '../services/yo
 import { uploadImageToS3 } from '../services/uploadToS3.js';
 import { isValidEmail, normalizeEmail } from '../utils/emailchecker.js';
 import crypto from 'crypto';
-import { emailSender } from '../utils/deque.js';
 
 const validateSchedulePayload = (
   mode: string,

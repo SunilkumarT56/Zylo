@@ -1,5 +1,4 @@
 {
-
   "editor.fontFamily": "JetBrains Mono, Fira Code, Menlo, Consolas, monospace",
   "editor.fontSize": 14,
   "editor.fontWeight": "400",
@@ -11,36 +10,30 @@
   "window.newWindowDimensions": "maximized",
   "window.restoreWindows": "all",
 
-
   "editor.cursorStyle": "line",
   "editor.cursorBlinking": "smooth",
   "editor.smoothScrolling": true,
   "editor.scrollBeyondLastLine": false,
   "editor.renderWhitespace": "selection",
 
-
   "editor.minimap.enabled": false,
   "editor.wordWrap": "on",
   "editor.wordWrapColumn": 120,
   "editor.rulers": [80, 120],
 
-
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
 
-
   "breadcrumbs.enabled": true,
-  "workbench.activityBar.location": "left",
+  "workbench.activityBar.location": "hidden",
   "workbench.editor.enablePreview": false,
   "workbench.startupEditor": "none",
-
 
   "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 1000,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-
 
   "terminal.integrated.fontFamily": "JetBrains Mono, Menlo, monospace",
   "terminal.integrated.fontSize": 13,

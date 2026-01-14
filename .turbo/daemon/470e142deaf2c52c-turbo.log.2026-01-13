@@ -249,3 +249,17 @@
 2026-01-13T08:00:00.444515Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("user"), path: AnchoredSystemPathBuf("apps/zylo") }}))
 2026-01-13T08:00:01.144038Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/zylo/src/controllers/zylo.controller.ts")}
 2026-01-13T08:00:01.144045Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("user"), path: AnchoredSystemPathBuf("apps/zylo") }}))
+2026-01-13T09:25:50.813452Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".vscode/settings.json")}
+2026-01-13T09:25:50.816205Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-01-13T09:30:12.515745Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".vscode/settings.json")}
+2026-01-13T09:30:12.518629Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-01-13T09:30:25.495061Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".vscode/settings.json")}
+2026-01-13T09:30:25.495456Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-01-13T09:31:36.293850Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/6.cookie")}
+2026-01-13T09:31:36.293880Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-01-13T09:31:36.993696Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/ui/vite.config.ts.timestamp-1768296696929-e903682cc35d4.mjs")}
+2026-01-13T09:31:36.993705Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("vc-ui"), path: AnchoredSystemPathBuf("apps/ui") }}))
+2026-01-13T09:31:37.293655Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/ui/vite.config.ts.timestamp-1768296696929-e903682cc35d4.mjs")}
+2026-01-13T09:31:37.293667Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("vc-ui"), path: AnchoredSystemPathBuf("apps/ui") }}))
+2026-01-13T09:33:39.394607Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/zylo/src/controllers/zylo.controller.ts")}
+2026-01-13T09:33:39.394632Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("user"), path: AnchoredSystemPathBuf("apps/zylo") }}))
